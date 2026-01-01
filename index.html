@@ -5,20 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lab Studio Fit</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 </head>
-<body class="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
+<body class="min-h-screen bg-zinc-950 text-white">
   <div id="root"></div>
-  <script>
-    function App() {
-      return React.createElement('div', { className: 'text-center' }, [
-        React.createElement('h1', { className: 'text-4xl font-bold' }, 'Welcome to Lab Studio Fit'),
-        React.createElement('p', { className: 'mt-2 text-zinc-400' }, 'This site is under construction. Please check back soon!')
-      ]);
-    }
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(React.createElement(App));
-  </script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
