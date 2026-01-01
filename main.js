@@ -55,8 +55,6 @@ import {
 
 const html = htm.bind(React.createElement);
 
-const html = htm.bind(React.createElement);
-
 // --- ASSETS & DATA ---
 const BRAND = {
   name: 'THE LAB',
