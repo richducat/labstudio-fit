@@ -1,6 +1,6 @@
-import * as React from 'https://cdn.skypack.dev/react@18';
-import { createRoot } from 'https://cdn.skypack.dev/react-dom@18/client';
-import htm from 'https://cdn.skypack.dev/htm';
+import * as React from 'https://esm.sh/react@18.3.1';
+import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+import htm from 'https://esm.sh/htm@3.1.1';
 import {
   Dumbbell,
   Brain,
