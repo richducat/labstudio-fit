@@ -1,6 +1,82 @@
 const React = window.React;
-const { createRoot } = window.ReactDOM;
+const ReactDOM = window.ReactDOM;
 const htm = window.htm;
+
+if (!React || !ReactDOM || !htm) {
+  const rootEl = document.getElementById('root');
+  if (rootEl) {
+    rootEl.innerHTML = `
+      <div style="padding: 24px; font-family: system-ui, -apple-system, sans-serif;">
+        <h1 style="font-size: 20px; margin-bottom: 8px;">Unable to load the app</h1>
+        <p style="opacity: 0.8;">Required libraries failed to load. Please check your network connection or CDN access.</p>
+      </div>
+    `;
+  }
+  throw new Error('Required libraries failed to load.');
+}
+
+const { createRoot } = ReactDOM;
+const html = htm.bind(React.createElement);
+const { useState, useEffect, useRef } = React;
+
+const lucideIcons = window.lucideReact || window.LucideReact || window.lucide || {};
+const fallbackIcon = () => null;
+const iconNames = [
+  'Dumbbell',
+  'Brain',
+  'ShoppingBag',
+  'Calendar',
+  'MessageSquare',
+  'Trophy',
+  'Flame',
+  'ChevronRight',
+  'Zap',
+  'MapPin',
+  'X',
+  'Plus',
+  'Minus',
+  'Activity',
+  'CheckCircle',
+  'Clock',
+  'User',
+  'CreditCard',
+  'ArrowRight',
+  'QrCode',
+  'BarChart3',
+  'Search',
+  'Volume2',
+  'Mic',
+  'Play',
+  'Pause',
+  'RotateCcw',
+  'Grid',
+  'Camera',
+  'Smartphone',
+  'Scale',
+  'Heart',
+  'Sword',
+  'Shield',
+  'Utensils',
+  'Gift',
+  'Share2',
+  'Ticket',
+  'AlertCircle',
+  'Battery',
+  'TrendingUp',
+  'Info',
+  'Timer',
+  'Video',
+  'Users',
+  'CheckSquare',
+  'ArrowLeft',
+  'BookOpen',
+  'Fingerprint'
+];
+
+const iconMap = Object.fromEntries(
+  iconNames.map((name) => [name, lucideIcons[name] || fallbackIcon])
+);
+
 const {
   Dumbbell,
   Brain,
@@ -51,10 +127,7 @@ const {
   ArrowLeft,
   BookOpen,
   Fingerprint
-} = window.lucideReact;
-
-const html = htm.bind(React.createElement);
-const { useState, useEffect, useRef } = React;
+} = iconMap;
 
 // --- ASSETS & DATA ---
 const BRAND = {
