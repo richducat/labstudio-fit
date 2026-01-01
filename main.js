@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'https://cdn.skypack.dev/react@18';
+import * as React from 'https://cdn.skypack.dev/react@18';
 import { createRoot } from 'https://cdn.skypack.dev/react-dom@18/client';
 import htm from 'https://cdn.skypack.dev/htm';
 import {
@@ -54,8 +54,7 @@ import {
 } from 'https://esm.sh/lucide-react@0.408.0?bundle';
 
 const html = htm.bind(React.createElement);
-
-const html = htm.bind(React.createElement);
+const { useState, useEffect, useRef } = React;
 
 // --- ASSETS & DATA ---
 const BRAND = {
