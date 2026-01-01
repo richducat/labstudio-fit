@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Lab Ultimate</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lab Studio Fit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+    import React, { useState } from 'https://cdn.skypack.dev/react@18';
+    import { createRoot } from 'https://cdn.skypack.dev/react-dom@18/client';
+
+    function App() {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold">Welcome to Lab Studio Fit</h1>
+            <p className="mt-2 text-zinc-400">This site is under construction. Please check back soon!</p>
+          </div>
+        </div>
+      );
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(React.createElement(App));
+    </script>
 </head>
-<body class="bg-zinc-950 text-white h-screen overflow-hidden selection:bg-violet-500">
+<body>
   <div id="root"></div>
-  <script type="module" src="main.js"></script>
 </body>
 </html>
