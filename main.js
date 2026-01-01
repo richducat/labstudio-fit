@@ -51,7 +51,9 @@ import {
   ArrowLeft,
   BookOpen,
   Fingerprint
-} from 'https://cdn.skypack.dev/lucide-react@latest?bundle';
+} from 'https://esm.sh/lucide-react@0.408.0?bundle';
+
+const html = htm.bind(React.createElement);
 
 const html = htm.bind(React.createElement);
 
