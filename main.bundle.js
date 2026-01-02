@@ -1,19 +1,228 @@
+(() => {
+  if (window.React && window.ReactDOM && window.htm) {
+    return;
+  }
+
+  const TinyReact = (() => {
+    let hookIndex = 0;
+    const hooks = [];
+    let rootContainer = null;
+    let rootRenderer = null;
+    let renderQueued = false;
+    const pendingEffects = [];
+
+    const normalizeNodes = (value) => {
+      if (value == null || value === false) {
+        return [];
+      }
+      if (value instanceof DocumentFragment) {
+        return Array.from(value.childNodes);
+      }
+      if (value instanceof Node) {
+        return [value];
+      }
+      if (Array.isArray(value)) {
+        return value.flatMap(normalizeNodes);
+      }
+      return [document.createTextNode(String(value))];
+    };
+
+    const parsePlaceholder = (value, marker) => {
+      if (!value || typeof value !== 'string') return null;
+      if (!value.startsWith(marker)) return null;
+      const trimmed = value.slice(marker.length);
+      const index = Number.parseInt(trimmed, 10);
+      return Number.isNaN(index) ? null : index;
+    };
+
+    const buildFragment = (strings, values) => {
+      const marker = '__htm__';
+      let markup = '';
+
+      strings.forEach((chunk, index) => {
+        markup += chunk;
+        if (index >= values.length) return;
+        if (chunk.endsWith('</')) {
+          markup += 'htm-component';
+          return;
+        }
+        if (chunk.endsWith('<')) {
+          markup += `htm-component data-htm-idx="${index}"`;
+        } else if (/=\s*$/.test(chunk)) {
+          markup += `"${marker}${index}"`;
+        } else {
+          markup += `<!--${marker}${index}-->`;
+        }
+      });
+
+      const template = document.createElement('template');
+      template.innerHTML = markup.trim();
+      const fragment = template.content;
+
+      const walk = (node) => {
+        if (node.nodeType === Node.COMMENT_NODE) {
+          const idx = parsePlaceholder(node.nodeValue, marker);
+          if (idx !== null) {
+            const nodes = normalizeNodes(values[idx]);
+            nodes.forEach((child) => node.parentNode.insertBefore(child, node));
+            node.remove();
+            return;
+          }
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.tagName.toLowerCase() === 'htm-component') {
+            const idx = Number(node.getAttribute('data-htm-idx'));
+            const Component = values[idx];
+            const props = {};
+            Array.from(node.childNodes).forEach((child) => walk(child));
+            Array.from(node.attributes).forEach((attr) => {
+              if (attr.name === 'data-htm-idx') return;
+              const valueIndex = parsePlaceholder(attr.value, marker);
+              props[attr.name] = valueIndex !== null ? values[valueIndex] : attr.value;
+            });
+            props.children = Array.from(node.childNodes);
+            const rendered = typeof Component === 'function' ? Component(props) : Component;
+            const nodes = normalizeNodes(rendered);
+            nodes.forEach((child) => node.parentNode.insertBefore(child, node));
+            node.remove();
+            return;
+          }
+
+          Array.from(node.attributes).forEach((attr) => {
+            const valueIndex = parsePlaceholder(attr.value, marker);
+            if (valueIndex === null) {
+              if (attr.name === 'className') {
+                node.setAttribute('class', attr.value);
+                node.removeAttribute('className');
+              }
+              return;
+            }
+
+            const value = values[valueIndex];
+            if (attr.name.startsWith('on') && typeof value === 'function') {
+              const eventName = attr.name.slice(2).toLowerCase();
+              node.removeAttribute(attr.name);
+              if (eventName === 'change') {
+                node.addEventListener('input', value);
+                node.addEventListener('change', value);
+              } else {
+                node.addEventListener(eventName, value);
+              }
+              return;
+            }
+            if (attr.name === 'className') {
+              node.setAttribute('class', value ?? '');
+              node.removeAttribute('className');
+              return;
+            }
+            if (attr.name === 'style' && value && typeof value === 'object') {
+              Object.entries(value).forEach(([key, val]) => {
+                node.style[key] = val;
+              });
+              node.removeAttribute(attr.name);
+              return;
+            }
+            if (value === false || value == null) {
+              node.removeAttribute(attr.name);
+              return;
+            }
+            if (value === true) {
+              node.setAttribute(attr.name, '');
+              return;
+            }
+            node.setAttribute(attr.name, value);
+          });
+        }
+
+        Array.from(node.childNodes).forEach((child) => walk(child));
+      };
+
+      Array.from(fragment.childNodes).forEach((child) => walk(child));
+      return fragment;
+    };
+
+    const html = (strings, ...values) => buildFragment(strings, values);
+
+    const createRoot = (container) => {
+      rootContainer = container;
+      return {
+        render(element) {
+          rootRenderer = typeof element === 'function' ? element : () => element;
+          queueRender();
+        }
+      };
+    };
+
+    const queueRender = () => {
+      if (renderQueued) return;
+      renderQueued = true;
+      queueMicrotask(() => {
+        renderQueued = false;
+        renderRoot();
+      });
+    };
+
+    const renderRoot = () => {
+      if (!rootContainer || !rootRenderer) return;
+      hookIndex = 0;
+      const node = rootRenderer();
+      rootContainer.innerHTML = '';
+      normalizeNodes(node).forEach((child) => rootContainer.appendChild(child));
+      pendingEffects.splice(0).forEach((effect) => effect());
+    };
+
+    const useState = (initial) => {
+      const index = hookIndex;
+      if (hooks[index] === undefined) {
+        hooks[index] = typeof initial === 'function' ? initial() : initial;
+      }
+      const setState = (value) => {
+        const nextValue = typeof value === 'function' ? value(hooks[index]) : value;
+        if (Object.is(nextValue, hooks[index])) return;
+        hooks[index] = nextValue;
+        queueRender();
+      };
+      hookIndex += 1;
+      return [hooks[index], setState];
+    };
+
+    const useRef = (initial) => {
+      const index = hookIndex;
+      if (!hooks[index]) {
+        hooks[index] = { current: initial };
+      }
+      hookIndex += 1;
+      return hooks[index];
+    };
+
+    const useEffect = (effect, deps) => {
+      const index = hookIndex;
+      const prev = hooks[index];
+      const hasChanged = !prev || !deps || deps.some((dep, i) => !Object.is(dep, prev.deps[i]));
+      if (hasChanged) {
+        pendingEffects.push(() => {
+          if (prev && prev.cleanup) {
+            prev.cleanup();
+          }
+          const cleanup = effect();
+          hooks[index] = { deps, cleanup };
+        });
+      }
+      hookIndex += 1;
+    };
+
+    return { html, createRoot, useState, useEffect, useRef, createElement: () => null };
+  })();
+
+  window.React = TinyReact;
+  window.ReactDOM = { createRoot: TinyReact.createRoot };
+  window.htm = { bind: () => TinyReact.html };
+})();
+
 const React = window.React;
 const ReactDOM = window.ReactDOM;
 const htm = window.htm;
-
-if (!React || !ReactDOM || !htm) {
-  const rootEl = document.getElementById('root');
-  if (rootEl) {
-    rootEl.innerHTML = `
-      <div style="padding: 24px; font-family: system-ui, -apple-system, sans-serif;">
-        <h1 style="font-size: 20px; margin-bottom: 8px;">Unable to load the app</h1>
-        <p style="opacity: 0.8;">Required libraries failed to load. Please check your network connection or CDN access.</p>
-      </div>
-    `;
-  }
-  throw new Error('Required libraries failed to load.');
-}
 
 const { createRoot } = ReactDOM;
 const html = htm.bind(React.createElement);
@@ -1716,4 +1925,4 @@ function PassModal({ close, user }) {
 
 const rootEl = document.getElementById('root');
 const root = createRoot(rootEl);
-root.render(html`<${TheLabUltimate} />`);
+root.render(() => html`<${TheLabUltimate} />`);
