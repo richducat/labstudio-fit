@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab Studio Fit</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: #0a0a0f;
+      color: #f4f4f5;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #0a0a0f;
+    }
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 24px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.2em;
+    }
+    .brand p {
+      margin: 0;
+      color: #a1a1aa;
+      font-size: 14px;
+    }
+    .badge {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(124, 58, 237, 0.2);
+      color: #c4b5fd;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(124, 58, 237, 0.4);
+    }
+    .hero {
+      background: radial-gradient(circle at top, rgba(124, 58, 237, 0.4), transparent 60%),
+        #111118;
+      border-radius: 24px;
+      padding: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 16px;
+    }
+    .hero h2 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .hero p {
+      margin: 0;
+      color: #d4d4d8;
+      line-height: 1.6;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .stat {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(24, 24, 27, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .stat h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .stat span {
+      color: #a1a1aa;
+      font-size: 12px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tab-button {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #18181b;
+      color: #e4e4e7;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-button.active {
+      background: #7c3aed;
+      border-color: #7c3aed;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+    .grid.two {
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .card {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(24, 24, 27, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      gap: 12px;
+    }
+    .card h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+    .card p {
+      margin: 0;
+      color: #a1a1aa;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(63, 63, 70, 0.7);
+      color: #e4e4e7;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 14px;
+      border: none;
+      background: #7c3aed;
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .footer {
+      margin-top: auto;
+      color: #71717a;
+      font-size: 12px;
+      text-align: center;
+      padding: 12px 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="/main.bundle.js"></script>
+</body>
+</html>
