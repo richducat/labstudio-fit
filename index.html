@@ -1,179 +1,532 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lab Studio Fit</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      font-family: "Inter", system-ui, -apple-system, sans-serif;
-      background: #0a0a0f;
-      color: #f4f4f5;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO META TAGS -->
+    <title>Private Personal Trainer Viera & Melbourne, FL | The Lab Studio Gym</title>
+    <meta name="description" content="Looking for a private personal trainer in Viera or Suntree (32940)? The Lab Studio Gym offers elite 1-on-1 fitness training, 24/7 gym access, and weight loss coaching.">
+    <meta name="keywords" content="Personal Trainer Viera, Private Gym Melbourne FL, Fitness Trainer 32940, Suntree Gym, Weight Loss Coach Viera">
+    <meta name="author" content="The Lab Studio Gym">
+    <meta name="robots" content="index, follow">
+
+    <!-- OPEN GRAPH (Social Sharing) -->
+    <meta property="og:title" content="The Lab Studio Gym | Private Training in Viera">
+    <meta property="og:description" content="Exclusive private gym and fitness training in Suntree & Viera (32940). Elite 1-on-1 personal training and 24/7 access.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop">
+    <meta property="og:url" content="https://thelabstudiogym.com">
+    <meta property="og:type" content="website">
+
+    <!-- TAILWIND CSS (Production Version via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FONTS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <!-- CUSTOM CONFIG -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        labBlue: '#025F9A',
+                        labOrange: '#CB611F',
+                        labDark: '#0f172a', // Slate 900
+                        labDarker: '#020617', // Slate 950
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Utilities */
+        .text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        .hero-overlay {
+            background: linear-gradient(to right, rgba(2, 6, 23, 0.9) 0%, rgba(2, 6, 23, 0.7) 50%, rgba(2, 6, 23, 0.4) 100%);
+        }
+        .clip-slant {
+            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        }
+        /* Mobile Menu Animation */
+        #mobile-menu {
+            transition: transform 0.3s ease-in-out;
+            transform: translateX(100%);
+        }
+        #mobile-menu.open {
+            transform: translateX(0);
+        }
+    </style>
+
+    <!-- SCHEMA MARKUP (CRITICAL FOR LOCAL SEO) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ExerciseGym",
+      "name": "The Lab Studio Gym",
+      "image": "https://thelabstudiogym.com/images/logo.jpg",
+      "telephone": "(321) 555-0123", 
+      "url": "https://thelabstudiogym.com/",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "3280 Suntree Blvd Unit 103",
+        "addressLocality": "Melbourne",
+        "addressRegion": "FL",
+        "postalCode": "32940",
+        "addressCountry": "US"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 28.2324, 
+        "longitude": -80.6756
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+        ],
+        "opens": "00:00",
+        "closes": "23:59"
+      },
+      "priceRange": "$$"
     }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      background: #0a0a0f;
-    }
-    .page {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-      padding: 24px;
-    }
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .brand {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .brand h1 {
-      margin: 0;
-      font-size: 24px;
-      letter-spacing: 0.2em;
-    }
-    .brand p {
-      margin: 0;
-      color: #a1a1aa;
-      font-size: 14px;
-    }
-    .badge {
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: rgba(124, 58, 237, 0.2);
-      color: #c4b5fd;
-      font-size: 12px;
-      font-weight: 600;
-      border: 1px solid rgba(124, 58, 237, 0.4);
-    }
-    .hero {
-      background: radial-gradient(circle at top, rgba(124, 58, 237, 0.4), transparent 60%),
-        #111118;
-      border-radius: 24px;
-      padding: 24px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      display: grid;
-      gap: 16px;
-    }
-    .hero h2 {
-      margin: 0;
-      font-size: 28px;
-    }
-    .hero p {
-      margin: 0;
-      color: #d4d4d8;
-      line-height: 1.6;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-    }
-    .stat {
-      padding: 16px;
-      border-radius: 18px;
-      background: rgba(24, 24, 27, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .stat h3 {
-      margin: 0;
-      font-size: 18px;
-    }
-    .stat span {
-      color: #a1a1aa;
-      font-size: 12px;
-    }
-    .tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .tab-button {
-      padding: 10px 16px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: #18181b;
-      color: #e4e4e7;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .tab-button.active {
-      background: #7c3aed;
-      border-color: #7c3aed;
-      color: #fff;
-      box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
-    }
-    .grid {
-      display: grid;
-      gap: 16px;
-    }
-    .grid.two {
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    }
-    .card {
-      padding: 18px;
-      border-radius: 18px;
-      background: rgba(24, 24, 27, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      display: grid;
-      gap: 12px;
-    }
-    .card h4 {
-      margin: 0;
-      font-size: 16px;
-    }
-    .card p {
-      margin: 0;
-      color: #a1a1aa;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(63, 63, 70, 0.7);
-      color: #e4e4e7;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .cta {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 18px;
-      border-radius: 14px;
-      border: none;
-      background: #7c3aed;
-      color: #fff;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .footer {
-      margin-top: auto;
-      color: #71717a;
-      font-size: 12px;
-      text-align: center;
-      padding: 12px 0 4px;
-    }
-  </style>
+    </script>
 </head>
-<body>
-  <div id="root"></div>
-  <script src="./main.bundle.js"></script>
+<body class="bg-labDarker text-gray-100 font-sans antialiased overflow-x-hidden">
+
+    <!-- TOP BAR -->
+    <div class="bg-labBlue text-white text-xs py-2 px-4 text-center font-semibold tracking-wide">
+        <span class="inline-block mr-2"><i class="fas fa-map-marker-alt"></i> SERVING VIERA, SUNTREE & MELBOURNE</span>
+        <span class="hidden sm:inline">|</span>
+        <span class="inline-block ml-2"><i class="fas fa-bolt"></i> NEW CLIENT SPECIAL: FREE CONSULTATION</span>
+    </div>
+
+    <!-- NAVIGATION -->
+    <nav class="sticky top-0 z-50 bg-labDarker/95 backdrop-blur border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="text-3xl font-black italic tracking-tighter text-white">
+                        THE <span class="text-labBlue">LAB</span>
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#home" class="text-gray-300 hover:text-white transition font-medium">Home</a>
+                    <a href="#training" class="text-gray-300 hover:text-white transition font-medium">Personal Training</a>
+                    <a href="#facility" class="text-gray-300 hover:text-white transition font-medium">The Facility</a>
+                    <a href="#about" class="text-gray-300 hover:text-white transition font-medium">About</a>
+                    <a href="/members" class="text-gray-300 hover:text-white transition font-medium">Member Login</a>
+                    <a href="#contact" class="bg-labOrange hover:bg-orange-700 text-white px-6 py-2 rounded-full font-bold transition transform hover:scale-105 shadow-lg">
+                        Book Now
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="menu-btn" class="text-white hover:text-labBlue focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu" class="fixed inset-0 bg-labDarker z-50 pt-20 px-6 space-y-6 md:hidden">
+            <button id="close-menu" class="absolute top-6 right-6 text-white text-3xl">
+                <i class="fas fa-times"></i>
+            </button>
+            <a href="#home" class="block text-2xl font-bold text-white border-b border-gray-800 pb-2">Home</a>
+            <a href="#training" class="block text-2xl font-bold text-white border-b border-gray-800 pb-2">Personal Training</a>
+            <a href="#facility" class="block text-2xl font-bold text-white border-b border-gray-800 pb-2">The Facility</a>
+            <a href="#about" class="block text-2xl font-bold text-white border-b border-gray-800 pb-2">About Us</a>
+            <a href="/members" class="block text-2xl font-bold text-white border-b border-gray-800 pb-2">Member Login</a>
+            <a href="#contact" class="block text-center w-full bg-labOrange text-white py-4 rounded-lg font-bold text-xl mt-8">
+                Book Free Consult
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="home" class="relative h-screen min-h-[600px] flex items-center clip-slant">
+        <!-- Background Image with Fallback -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=1975&auto=format&fit=crop" 
+                 alt="Private Personal Trainer Viera Gym" 
+                 class="w-full h-full object-cover opacity-60">
+        </div>
+        <div class="absolute inset-0 hero-overlay z-10"></div>
+
+        <div class="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+            <div class="max-w-3xl">
+                <span class="text-labOrange font-bold tracking-widest uppercase mb-2 block">Located in Suntree / Viera</span>
+                <h1 class="text-5xl md:text-7xl font-black text-white mb-6 leading-tight text-shadow">
+                    ELITE PRIVATE <br>
+                    <span class="text-labOrange">PERSONAL TRAINING</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-300 mb-8 font-light max-w-2xl">
+                    Stop guessing at big box gyms. Get guaranteed results with a dedicated 
+                    <strong class="text-white">Private Fitness Trainer</strong> in a luxury, crowd-free studio.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#contact" class="bg-labOrange hover:bg-orange-700 text-white px-8 py-4 rounded-full font-bold text-lg text-center transition shadow-lg shadow-orange-900/50">
+                        Start Your Transformation
+                    </a>
+                    <a href="#facility" class="bg-transparent border-2 border-white hover:bg-white hover:text-labDarker text-white px-8 py-4 rounded-full font-bold text-lg text-center transition">
+                        View The Gym
+                    </a>
+                </div>
+                <div class="mt-8 flex items-center space-x-6 text-sm text-gray-400">
+                    <div class="flex items-center"><i class="fas fa-check text-labBlue mr-2"></i> 24/7 Access</div>
+                    <div class="flex items-center"><i class="fas fa-check text-labBlue mr-2"></i> No Crowds</div>
+                    <div class="flex items-center"><i class="fas fa-check text-labBlue mr-2"></i> Certified Pros</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- KEYWORDS & INTRO (SEO HEAVY) -->
+    <section class="py-20 bg-labDarker">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+                The Premier <span class="text-labBlue">Private Gym</span> in Viera & Melbourne
+            </h2>
+            <p class="text-gray-400 max-w-3xl mx-auto text-lg leading-relaxed">
+                The Lab Studio Gym is not a crowded commercial fitness center. We are a private training facility located in the <strong>Suntree Business Center (32940)</strong>, dedicated to clients who demand privacy, expert coaching, and real results. Whether you are looking for weight loss, strength training, or injury rehab, our certified <strong>personal trainers</strong> build a custom roadmap for your body.
+            </p>
+        </div>
+    </section>
+
+    <!-- SERVICES SECTION -->
+    <section id="training" class="py-20 bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <span class="text-labOrange font-bold uppercase tracking-wider">Our Services</span>
+                <h2 class="text-4xl font-bold text-white mt-2">How We Get You Results</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-labDarker p-8 rounded-2xl border border-gray-800 hover:border-labBlue transition group">
+                    <div class="h-14 w-14 bg-labBlue/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-labBlue transition">
+                        <i class="fas fa-dumbbell text-2xl text-labBlue group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">1-on-1 Personal Training</h3>
+                    <p class="text-gray-400 mb-6">
+                        The fastest way to reach your goals. A dedicated coach creates your workouts, tracks your nutrition, and corrects your form in every single session.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2 mb-8">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Custom Workout Plan</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Nutritional Guidance</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Accountability</li>
+                    </ul>
+                    <a href="#contact" class="text-labBlue font-bold hover:text-white transition">Learn More &rarr;</a>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-labDarker p-8 rounded-2xl border border-gray-800 hover:border-labBlue transition group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-labOrange text-white text-xs font-bold px-3 py-1 rounded-bl-lg">POPULAR</div>
+                    <div class="h-14 w-14 bg-labBlue/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-labBlue transition">
+                        <i class="fas fa-users text-2xl text-labBlue group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Semi-Private Training</h3>
+                    <p class="text-gray-400 mb-6">
+                        Get the expertise of a personal trainer at a fraction of the cost. Train in small groups (2-4 people) for high energy and community motivation.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2 mb-8">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Lower Cost Per Session</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> High Energy Atmosphere</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Individual Modifications</li>
+                    </ul>
+                    <a href="#contact" class="text-labBlue font-bold hover:text-white transition">Learn More &rarr;</a>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-labDarker p-8 rounded-2xl border border-gray-800 hover:border-labBlue transition group">
+                    <div class="h-14 w-14 bg-labBlue/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-labBlue transition">
+                        <i class="fas fa-key text-2xl text-labBlue group-hover:text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white mb-4">Private Gym Access</h3>
+                    <p class="text-gray-400 mb-6">
+                        For the experienced lifter. Get 24/7 keycard access to our facility. No waiting for racks, no crowds, just high-end equipment and focus.
+                    </p>
+                    <ul class="text-sm text-gray-500 space-y-2 mb-8">
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> 24/7 Keycard Entry</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Capped Membership</li>
+                        <li><i class="fas fa-check text-green-500 mr-2"></i> Shower & Towel Service</li>
+                    </ul>
+                    <a href="#contact" class="text-labBlue font-bold hover:text-white transition">Inquire Now &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FACILITY SHOWCASE -->
+    <section id="facility" class="py-20 bg-labDarker relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-4xl font-bold text-white mb-6">A Gym Built for <span class="text-labBlue">Performance</span></h2>
+                    <p class="text-gray-400 text-lg mb-6">
+                        Located conveniently in the Suntree Business Center, The Lab Studio Gym is equipped with everything you need and nothing you don't. 
+                    </p>
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-labOrange mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="text-white font-bold">Private Atmosphere</h4>
+                                <p class="text-sm text-gray-500">No filming, no crowds, just work.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-labOrange mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="text-white font-bold">Top-Tier Equipment</h4>
+                                <p class="text-sm text-gray-500">Squat racks, deadlift platforms, cables, and functional turf.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check-circle text-labOrange mt-1 mr-3"></i>
+                            <div>
+                                <h4 class="text-white font-bold">Clean & Sanitized</h4>
+                                <p class="text-sm text-gray-500">We take pride in a spotless facility.</p>
+                            </div>
+                        </li>
+                    </ul>
+                    <a href="#contact" class="inline-block bg-white text-labDarker px-8 py-3 rounded-full font-bold hover:bg-gray-200 transition">
+                        Schedule a Tour
+                    </a>
+                </div>
+                <div class="relative">
+                    <div class="absolute -inset-4 bg-labBlue/30 rounded-lg blur-lg"></div>
+                    <img src="https://images.unsplash.com/photo-1593079831268-3381b0db4a77?q=80&w=1469&auto=format&fit=crop" 
+                         alt="Gym Interior Viera" 
+                         class="relative rounded-lg shadow-2xl border border-gray-700">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="py-20 bg-gray-900 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="order-2 md:order-1">
+                    <div class="relative rounded-lg overflow-hidden shadow-2xl border border-gray-700">
+                         <!-- Placeholder for Trainer/Owner Image -->
+                        <img src="https://images.unsplash.com/photo-1567013127542-490d757e51fc?q=80&w=1374&auto=format&fit=crop" 
+                             alt="Personal Trainer Viera" 
+                             class="w-full h-full object-cover">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-6">
+                            <p class="text-white font-bold text-lg">Your Name / Head Trainer</p>
+                            <p class="text-labOrange text-sm">Owner & Founder</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="order-1 md:order-2">
+                    <span class="text-labOrange font-bold uppercase tracking-wider">About Us</span>
+                    <h2 class="text-4xl font-bold text-white mt-2 mb-6">More Than Just A Gym</h2>
+                    <p class="text-gray-400 text-lg mb-6 leading-relaxed">
+                        The Lab Studio Gym was founded to solve a problem: big box gyms are crowded, dirty, and distracting. 
+                        We built a sanctuary for serious fitness in <strong>Viera & Melbourne</strong>. 
+                    </p>
+                    <p class="text-gray-400 text-lg mb-8 leading-relaxed">
+                        Our philosophy is simple: Environment dictates performance. When you train here, you aren't just renting equipment; 
+                        you are joining a private community focused on elite standards, whether you are a pro athlete or a busy parent reclaiming your health.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                         <div class="flex items-center text-gray-300">
+                            <i class="fas fa-certificate text-labBlue mr-3 text-xl"></i>
+                            <span>Certified Experts</span>
+                        </div>
+                        <div class="flex items-center text-gray-300">
+                            <i class="fas fa-heart text-labBlue mr-3 text-xl"></i>
+                            <span>Locally Owned</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOCIAL PROOF / REVIEWS -->
+    <section class="py-20 bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold text-white mb-12">What Our Clients Say</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Review 1 -->
+                <div class="bg-labDarker p-6 rounded-xl shadow-lg text-left">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic mb-4">"Hands down the best personal training experience in Viera. I've lost 15lbs in 2 months and my back pain is gone. The private studio vibe makes a huge difference."</p>
+                    <p class="text-white font-bold">- Sarah M., Suntree</p>
+                </div>
+                <!-- Review 2 -->
+                <div class="bg-labDarker p-6 rounded-xl shadow-lg text-left">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic mb-4">"I love that I can come in at 2am or 2pm with my keycard and never have to wait for equipment. It's clean, cold, and professional."</p>
+                    <p class="text-white font-bold">- Mike T., Melbourne</p>
+                </div>
+                <!-- Review 3 -->
+                <div class="bg-labDarker p-6 rounded-xl shadow-lg text-left">
+                    <div class="flex text-yellow-400 mb-4">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                    </div>
+                    <p class="text-gray-300 italic mb-4">"The trainers here actually care. They don't just count reps; they teach you how to lift correctly. Highly recommend!"</p>
+                    <p class="text-white font-bold">- Jessica R., Viera</p>
+                </div>
+            </div>
+            <div class="mt-10">
+                <a href="https://g.page/r/YOUR_GOOGLE_LINK" target="_blank" class="text-labBlue hover:text-white underline">Read more reviews on Google</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT / LOCATION SECTION -->
+    <section id="contact" class="py-20 bg-labBlue relative overflow-hidden">
+        <div class="absolute inset-0 bg-labDarker/90"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- Contact Info -->
+                <div class="text-white">
+                    <h2 class="text-4xl font-bold mb-6">Start Your Journey Today</h2>
+                    <p class="text-gray-300 mb-8">Fill out the form to schedule your free consultation or facility tour. We will get back to you within 24 hours.</p>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 bg-labOrange p-3 rounded-lg">
+                                <i class="fas fa-map-marker-alt text-xl text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-bold">Location</h3>
+                                <p class="text-gray-300">3280 Suntree Blvd Unit 103<br>Melbourne, FL 32940</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 bg-labOrange p-3 rounded-lg">
+                                <i class="fas fa-phone text-xl text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-bold">Phone</h3>
+                                <p class="text-gray-300">(321) 555-0123</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 bg-labOrange p-3 rounded-lg">
+                                <i class="fas fa-envelope text-xl text-white"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h3 class="text-lg font-bold">Email</h3>
+                                <p class="text-gray-300">info@thelabstudiogym.com</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <div class="bg-white rounded-2xl p-8 shadow-2xl">
+                    <form action="#" method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">Name</label>
+                            <input type="text" class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-labBlue" placeholder="Your Name">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">Email</label>
+                            <input type="email" class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-labBlue" placeholder="john@example.com">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-2">Goal</label>
+                            <select class="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-labBlue">
+                                <option>Weight Loss</option>
+                                <option>Muscle Gain</option>
+                                <option>Private Gym Access</option>
+                                <option>General Fitness</option>
+                            </select>
+                        </div>
+                        <button type="button" onclick="alert('This is a demo. Hook this up to your email service!')" class="w-full bg-labDarker text-white font-bold py-4 rounded-lg hover:bg-labBlue transition">
+                            Request Free Consultation
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-black text-gray-500 py-12 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h3 class="text-white text-lg font-bold mb-4">The Lab Studio Gym</h3>
+                    <p class="text-sm">
+                        Elite personal training and private gym facility serving Viera, Suntree, Rockledge, and Melbourne, Florida.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-white text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#home" class="hover:text-white">Home</a></li>
+                        <li><a href="#training" class="hover:text-white">Personal Training</a></li>
+                        <li><a href="#facility" class="hover:text-white">Facility</a></li>
+                        <li><a href="#contact" class="hover:text-white">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-white text-lg font-bold mb-4">Service Areas</h3>
+                    <p class="text-sm">Viera (32940), Suntree, Melbourne, Rockledge, Cocoa Beach.</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-center text-xs">
+                &copy; 2026 The Lab Studio Gym. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT FOR INTERACTIVITY -->
+    <script>
+        // Mobile Menu Toggle
+        const menuBtn = document.getElementById('menu-btn');
+        const closeMenu = document.getElementById('close-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuLinks = mobileMenu.querySelectorAll('a');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('open');
+            mobileMenu.classList.toggle('translate-x-full'); // Tailwind utility toggle if needed, but custom CSS handles it
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+        closeMenu.addEventListener('click', toggleMenu);
+
+        // Close menu when a link is clicked
+        menuLinks.forEach(link => {
+            link.addEventListener('click', toggleMenu);
+        });
+
+        // Simple Smooth Scroll Fallback (if css scroll-smooth fails)
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
 </body>
 </html>
