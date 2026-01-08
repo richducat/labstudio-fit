@@ -1729,7 +1729,6 @@ function PassModal({ close, user }) {
     const root = createRoot(rootElement);
     root.render(html`<${TheLabUltimate} />`);
   })
-  .catch((err) => {
-    console.error('Members app failed to load:', err);
-    renderFallback('Unable to load core modules. Please allow scripts from esm.sh and reload.');
+  .catch(() => {
+    renderFallback('We could not load the members experience because required scripts were blocked.');
   });
