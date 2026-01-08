@@ -1,60 +1,144 @@
-import * as React from 'https://esm.sh/react@18.3.1?target=es2019';
-import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client?target=es2019';
-import htm from 'https://esm.sh/htm@3.1.1?target=es2019';
-import {
-  Dumbbell,
-  Brain,
-  ShoppingBag,
-  Calendar,
-  MessageSquare,
-  Trophy,
-  Flame,
-  ChevronRight,
-  Zap,
-  MapPin,
-  X,
-  Plus,
-  Minus,
-  Activity,
-  CheckCircle,
-  Clock,
-  User,
-  CreditCard,
-  ArrowRight,
-  QrCode,
-  BarChart3,
-  Search,
-  Volume2,
-  Mic,
-  Play,
-  Pause,
-  RotateCcw,
-  Grid,
-  Camera,
-  Smartphone,
-  Scale,
-  Heart,
-  Sword,
-  Shield,
-  Utensils,
-  Gift,
-  Share2,
-  Ticket,
-  AlertCircle,
-  Battery,
-  TrendingUp,
-  Info,
-  Timer,
-  Video,
-  Users,
-  CheckSquare,
-  ArrowLeft,
-  BookOpen,
-  Fingerprint
-} from 'https://esm.sh/lucide-react@0.408.0?bundle&target=es2019';
+const rootElement = document.getElementById('root');
 
-const html = htm.bind(React.createElement);
-const { useState, useEffect, useRef } = React;
+const renderFallback = (message) => {
+  if (!rootElement) return;
+  rootElement.innerHTML = `
+    <div class="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-6">
+      <div class="max-w-lg text-center space-y-4">
+        <div class="text-2xl font-black uppercase tracking-widest">The Lab Members</div>
+        <p class="text-zinc-300 text-sm leading-relaxed">${message}</p>
+        <p class="text-zinc-500 text-xs">If you use a content blocker, allow access to the React and ReactDOM CDNs and reload.</p>
+      </div>
+    </div>
+  `;
+};
+
+const reactDeps = Promise.all([
+  import('https://esm.sh/react@18.3.1?target=es2019'),
+  import('https://esm.sh/react-dom@18.3.1/client?target=es2019'),
+  import('https://esm.sh/htm@3.1.1?target=es2019')
+]);
+
+const lucidePromise = import('https://esm.sh/lucide-react@0.408.0?bundle&target=es2019').catch(() => null);
+
+Promise.all([reactDeps, lucidePromise])
+  .then(([[React, ReactDom, htm], lucideModule]) => {
+    const { createRoot } = ReactDom;
+    const html = (htm.default ?? htm).bind(React.createElement);
+    const { useState, useEffect, useRef } = React;
+    const iconNames = [
+      'Dumbbell',
+      'Brain',
+      'ShoppingBag',
+      'Calendar',
+      'MessageSquare',
+      'Trophy',
+      'Flame',
+      'ChevronRight',
+      'Zap',
+      'MapPin',
+      'X',
+      'Plus',
+      'Minus',
+      'Activity',
+      'CheckCircle',
+      'Clock',
+      'User',
+      'CreditCard',
+      'ArrowRight',
+      'QrCode',
+      'BarChart3',
+      'Search',
+      'Volume2',
+      'Mic',
+      'Play',
+      'Pause',
+      'RotateCcw',
+      'Grid',
+      'Camera',
+      'Smartphone',
+      'Scale',
+      'Heart',
+      'Sword',
+      'Shield',
+      'Utensils',
+      'Gift',
+      'Share2',
+      'Ticket',
+      'AlertCircle',
+      'Battery',
+      'TrendingUp',
+      'Info',
+      'Timer',
+      'Video',
+      'Users',
+      'CheckSquare',
+      'ArrowLeft',
+      'BookOpen',
+      'Fingerprint'
+    ];
+    const createFallbackIcon = (label) => ({ size = 16, className = '' }) => html`
+      <span
+        className=${`inline-flex items-center justify-center rounded-full bg-zinc-700/70 text-[10px] font-black text-zinc-100 ${className}`}
+        style=${{ width: `${size}px`, height: `${size}px` }}
+        aria-hidden="true"
+      >
+        ${label.slice(0, 1)}
+      </span>
+    `;
+    const fallbackIcons = Object.fromEntries(iconNames.map((name) => [name, createFallbackIcon(name)]));
+    const icons = { ...fallbackIcons, ...(lucideModule ?? {}) };
+    const {
+      Dumbbell,
+      Brain,
+      ShoppingBag,
+      Calendar,
+      MessageSquare,
+      Trophy,
+      Flame,
+      ChevronRight,
+      Zap,
+      MapPin,
+      X,
+      Plus,
+      Minus,
+      Activity,
+      CheckCircle,
+      Clock,
+      User,
+      CreditCard,
+      ArrowRight,
+      QrCode,
+      BarChart3,
+      Search,
+      Volume2,
+      Mic,
+      Play,
+      Pause,
+      RotateCcw,
+      Grid,
+      Camera,
+      Smartphone,
+      Scale,
+      Heart,
+      Sword,
+      Shield,
+      Utensils,
+      Gift,
+      Share2,
+      Ticket,
+      AlertCircle,
+      Battery,
+      TrendingUp,
+      Info,
+      Timer,
+      Video,
+      Users,
+      CheckSquare,
+      ArrowLeft,
+      BookOpen,
+      Fingerprint
+    } = icons;
 
 // --- ASSETS & DATA ---
 const BRAND = {
@@ -896,7 +980,7 @@ function BookingView({ setTab, addXp, userProfile }) {
 
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">TOBY'S PICK</div>
+              <div className="bg-violet-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">TOBY’S PICK</div>
               <div className="h-px bg-zinc-800 flex-1"></div>
             </div>
 
@@ -1196,7 +1280,7 @@ function ProfileView({ user, log, addFood, close }) {
 // --- COACH VIEW ---
 function TobyCoachView() {
   const [messages, setMessages] = useState([
-    { id: 1, from: 'toby', text: "Toby 2.0 Online. I've analyzed your recovery data. Your CNS is primed. Do we push for a PR today?" }
+    { id: 1, from: 'toby', text: 'Toby 2.0 Online. I’ve analyzed your recovery data. Your CNS is primed. Do we push for a PR today?' }
   ]);
   const [isListening, setIsListening] = useState(false);
 
@@ -1208,7 +1292,7 @@ function TobyCoachView() {
     addMsg(action, 'user');
     setTimeout(() => {
       let resp = '';
-      if (action.includes('Push')) resp = "Love that energy. Let's hit a Heavy Upper Body session. Warm up with the Neuro Drill first.";
+      if (action.includes('Push')) resp = 'Love that energy. Let’s hit a Heavy Upper Body session. Warm up with the Neuro Drill first.';
       if (action.includes('Recovery')) resp = 'Smart. Active recovery. 20 min Sauna + 10 min Ice Bath. Book it now?';
       if (action.includes('Surprise')) resp = "Generating 'The Gauntlet' protocol... 4 Rounds, High Intensity. Prepare yourself.";
       addMsg(resp, 'toby');
@@ -1641,6 +1725,11 @@ function PassModal({ close, user }) {
   `;
 }
 
-const rootEl = document.getElementById('root');
-const root = createRoot(rootEl);
-root.render(html`<${TheLabUltimate} />`);
+    if (!rootElement) return;
+    const root = createRoot(rootElement);
+    root.render(html`<${TheLabUltimate} />`);
+  })
+  .catch((err) => {
+    console.error('Members app failed to load:', err);
+    renderFallback('Unable to load core modules. Please allow scripts from esm.sh and reload.');
+  });
