@@ -1729,6 +1729,7 @@ function PassModal({ close, user }) {
     const root = createRoot(rootElement);
     root.render(html`<${TheLabUltimate} />`);
   })
-  .catch(() => {
-    renderFallback('We could not load the members experience because required scripts were blocked.');
+  .catch((err) => {
+    console.error(err);
+    renderFallback('Unable to load core modules. Please allow scripts from esm.sh and reload.');
   });
