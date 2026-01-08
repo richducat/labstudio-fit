@@ -1,6 +1,6 @@
-import * as React from 'https://esm.sh/react@18.3.1';
-import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
-import htm from 'https://esm.sh/htm@3.1.1';
+import * as React from 'https://esm.sh/react@18.3.1?target=es2019';
+import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client?target=es2019';
+import htm from 'https://esm.sh/htm@3.1.1?target=es2019';
 import {
   Dumbbell,
   Brain,
@@ -51,7 +51,7 @@ import {
   ArrowLeft,
   BookOpen,
   Fingerprint
-} from 'https://esm.sh/lucide-react@0.408.0?bundle';
+} from 'https://esm.sh/lucide-react@0.408.0?bundle&target=es2019';
 
 const html = htm.bind(React.createElement);
 const { useState, useEffect, useRef } = React;
