@@ -13,16 +13,19 @@ const renderFallback = (message) => {
   `;
 };
 
-const reactDeps = Promise.all([
-  import('https://esm.sh/react@18.3.1?target=es2019'),
-  import('https://esm.sh/react-dom@18.3.1/client?target=es2019'),
-  import('https://esm.sh/htm@3.1.1?target=es2019')
-]);
+const reactDeps = () =>
+  Promise.all([
+    import('https://esm.sh/react@18.3.1?target=es2019'),
+    import('https://esm.sh/react-dom@18.3.1/client?target=es2019'),
+    import('https://esm.sh/htm@3.1.1?target=es2019')
+  ]);
 
-const lucidePromise = import('https://esm.sh/lucide-react@0.408.0?bundle&target=es2019').catch(() => null);
+const lucidePromise = () =>
+  import('https://esm.sh/lucide-react@0.408.0?bundle&target=es2019').catch(() => null);
 
-Promise.all([reactDeps, lucidePromise])
-  .then(([[React, ReactDom, htm], lucideModule]) => {
+const loadApp = async () => {
+  try {
+    const [[React, ReactDom, htm], lucideModule] = await Promise.all([reactDeps(), lucidePromise()]);
     const { createRoot } = ReactDom;
     const html = (htm.default ?? htm).bind(React.createElement);
     const { useState, useEffect, useRef } = React;
@@ -1728,8 +1731,10 @@ function PassModal({ close, user }) {
     if (!rootElement) return;
     const root = createRoot(rootElement);
     root.render(html`<${TheLabUltimate} />`);
-  })
-  .catch((err) => {
-    console.error(err);
+  } catch (error) {
+    console.error('Unable to load core modules.', error);
     renderFallback('Unable to load core modules. Please allow scripts from esm.sh and reload.');
-  });
+  }
+};
+
+loadApp();
