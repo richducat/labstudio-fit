@@ -1731,6 +1731,8 @@ function PassModal({ close, user }) {
     if (!rootElement) return;
     const root = createRoot(rootElement);
     root.render(html`<${TheLabUltimate} />`);
+    document.documentElement.dataset.membersLoaded = 'true';
+    window.dispatchEvent(new Event('members-app-loaded'));
   } catch (error) {
     console.error('Unable to load core modules.', error);
     renderFallback('Unable to load core modules. Please allow scripts from esm.sh and reload.');
