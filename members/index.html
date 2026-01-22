@@ -24,17 +24,6 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="module">
-    const fallbackToBundle = () => {
-      const script = document.createElement('script');
-      script.src = '../main.bundle.js';
-      script.defer = true;
-      document.head.appendChild(script);
-    };
-
-    import('./main.js').catch(() => {
-      fallbackToBundle();
-    });
-  </script>
+  <script type="module" src="./main.js"></script>
 </body>
 </html>
