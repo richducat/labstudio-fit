@@ -20,12 +20,9 @@ const reactDeps = () =>
     import('https://esm.sh/htm@3.1.1?target=es2019')
   ]);
 
-const lucidePromise = () =>
-  import('https://esm.sh/lucide-react@0.408.0?bundle&target=es2019').catch(() => null);
-
 const loadApp = async () => {
   try {
-    const [[React, ReactDom, htm], lucideModule] = await Promise.all([reactDeps(), lucidePromise()]);
+    const [[React, ReactDom, htm]] = await Promise.all([reactDeps()]);
     const { createRoot } = ReactDom;
     const html = (htm.default ?? htm).bind(React.createElement);
     const { useState, useEffect, useRef } = React;
@@ -94,7 +91,7 @@ const loadApp = async () => {
       </span>
     `;
     const fallbackIcons = Object.fromEntries(iconNames.map((name) => [name, createFallbackIcon(name)]));
-    const icons = { ...fallbackIcons, ...(lucideModule ?? {}) };
+    const icons = { ...fallbackIcons };
     const {
       Dumbbell,
       Brain,
@@ -248,6 +245,35 @@ const XpToast = ({ show, amount, text }) => {
 };
 
 // --- MAIN APP ---
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('Members app error:', error, info?.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return html`
+        <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-6">
+          <div className="max-w-md text-center space-y-3">
+            <div className="text-lg font-black uppercase tracking-widest">App error</div>
+            <p className="text-sm text-zinc-400">Something went wrong while loading your dashboard. Please reload.</p>
+          </div>
+        </div>
+      `;
+    }
+    return this.props.children;
+  }
+}
 
 function TheLabUltimate() {
   const [onboarding, setOnboarding] = useState(true);
@@ -1857,7 +1883,7 @@ function PassModal({ close, user }) {
 
     if (!rootElement) return;
     const root = createRoot(rootElement);
-    root.render(html`<${TheLabUltimate} />`);
+    root.render(html`<${ErrorBoundary}><${TheLabUltimate} /></${ErrorBoundary}>`);
     document.documentElement.dataset.membersLoaded = 'true';
     window.dispatchEvent(new Event('members-app-loaded'));
   } catch (error) {
