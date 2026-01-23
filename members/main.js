@@ -20,12 +20,9 @@ const reactDeps = () =>
     import('https://esm.sh/htm@3.1.1?target=es2019')
   ]);
 
-const lucidePromise = () =>
-  import('https://esm.sh/lucide-react@0.408.0?bundle&target=es2019').catch(() => null);
-
 const loadApp = async () => {
   try {
-    const [[React, ReactDom, htm], lucideModule] = await Promise.all([reactDeps(), lucidePromise()]);
+    const [[React, ReactDom, htm]] = await Promise.all([reactDeps()]);
     const { createRoot } = ReactDom;
     const html = (htm.default ?? htm).bind(React.createElement);
     const { useState, useEffect, useRef } = React;
@@ -78,7 +75,11 @@ const loadApp = async () => {
       'CheckSquare',
       'ArrowLeft',
       'BookOpen',
-      'Fingerprint'
+      'Fingerprint',
+      'Instagram',
+      'Twitter',
+      'Edit3',
+      'Image'
     ];
     const createFallbackIcon = (label) => ({ size = 16, className = '' }) => html`
       <span
@@ -90,7 +91,7 @@ const loadApp = async () => {
       </span>
     `;
     const fallbackIcons = Object.fromEntries(iconNames.map((name) => [name, createFallbackIcon(name)]));
-    const icons = { ...fallbackIcons, ...(lucideModule ?? {}) };
+    const icons = { ...fallbackIcons };
     const {
       Dumbbell,
       Brain,
@@ -140,7 +141,11 @@ const loadApp = async () => {
       CheckSquare,
       ArrowLeft,
       BookOpen,
-      Fingerprint
+      Fingerprint,
+      Instagram,
+      Twitter,
+      Edit3,
+      Image: ImageIcon
     } = icons;
 
 // --- ASSETS & DATA ---
@@ -241,6 +246,35 @@ const XpToast = ({ show, amount, text }) => {
 
 // --- MAIN APP ---
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    console.error('Members app error:', error, info?.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return html`
+        <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-6">
+          <div className="max-w-md text-center space-y-3">
+            <div className="text-lg font-black uppercase tracking-widest">App error</div>
+            <p className="text-sm text-zinc-400">Something went wrong while loading your dashboard. Please reload.</p>
+          </div>
+        </div>
+      `;
+    }
+    return this.props.children;
+  }
+}
+
 function TheLabUltimate() {
   const [onboarding, setOnboarding] = useState(true);
   const [tab, setTab] = useState('home');
@@ -256,12 +290,16 @@ function TheLabUltimate() {
   // USER PROFILE & REFERRALS
   const [userProfile, setUserProfile] = useState({
     name: 'TAYLOR',
+    handle: '@taylor_lifts',
+    bio: 'Chasing PRs and good vibes. 🏋️‍♂️',
     height: `5'11"`,
     weight: 185,
     bf: 14,
+    gender: 'Male',
     referralCode: 'LAB-8842',
     referrals: 2,
-    goal: 'Hypertrophy'
+    goal: 'Hypertrophy',
+    joined: 'Oct 2023'
   });
 
   const [nutritionLog, setNutritionLog] = useState([
@@ -273,10 +311,13 @@ function TheLabUltimate() {
     setUserProfile((prev) => ({
       ...prev,
       name: data.name,
+      handle: data.handle || `@${data.name.split(' ')[0].toLowerCase()}_lab`,
+      bio: data.bio,
       height: data.height,
       weight: data.weight,
       bf: data.bf,
-      goal: data.goal
+      goal: data.goal,
+      gender: data.gender
     }));
     setOnboarding(false);
   };
@@ -355,7 +396,7 @@ function TheLabUltimate() {
 
       <main className="max-w-md mx-auto p-4 animate-in fade-in duration-500 relative z-10">
         ${showProfile
-          ? html`<${ProfileView} user=${userProfile} log=${nutritionLog} addFood=${addFoodToLog} close=${() => setShowProfile(false)} />`
+          ? html`<${ProfileView} user=${userProfile} log=${nutritionLog} addFood=${addFoodToLog} close=${() => setShowProfile(false)} myXp=${xp} level=${level} />`
           : html`
               ${tab === 'home' && html`<${HomeView} xp=${xp} level=${level} setTab=${setTab} nutritionLog=${nutritionLog} credits=${credits} userProfile=${userProfile} />`}
               ${tab === 'book' && html`<${BookingView} addXp=${addXp} setTab=${setTab} userProfile=${userProfile} />`}
@@ -403,14 +444,60 @@ const NavBtn = ({ icon: Icon, label, active, onClick }) => html`
   </button>
 `;
 
-// --- ONBOARDING VIEW (NEW) ---
+// --- ONBOARDING VIEW (ENHANCED) ---
 function OnboardingView({ onComplete }) {
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({ name: '', height: '', weight: '', bf: '', goal: 'Strength' });
+  const [formData, setFormData] = useState({
+    name: '',
+    handle: '',
+    gender: 'Male',
+    height: '',
+    weight: '',
+    neck: '',
+    waist: '',
+    hip: '',
+    bf: '',
+    bio: '',
+    goal: 'Strength'
+  });
   const [loading, setLoading] = useState(false);
+  const [calcBf, setCalcBf] = useState(null);
+
+  const isValidBfInputs = (data) => {
+    const h = parseFloat(data.height);
+    const n = parseFloat(data.neck);
+    const w = parseFloat(data.waist);
+    const hip = parseFloat(data.hip || 0);
+    if (![h, n, w].every((val) => Number.isFinite(val))) return false;
+    if (data.gender === 'Male') return w > n;
+    return w + hip > n;
+  };
+
+  const calculateBF = () => {
+    if (!isValidBfInputs(formData)) {
+      setCalcBf(null);
+      return;
+    }
+    const h = parseFloat(formData.height);
+    const n = parseFloat(formData.neck);
+    const w = parseFloat(formData.waist);
+    const hip = parseFloat(formData.hip || 0);
+
+    let result = 0;
+    if (formData.gender === 'Male') {
+      result = 86.01 * Math.log10(w - n) - 70.041 * Math.log10(h) + 36.76;
+    } else {
+      result = 163.205 * Math.log10(w + hip - n) - 97.684 * Math.log10(h) - 78.387;
+    }
+
+    const val = Math.max(2, Math.min(50, result)).toFixed(1);
+    setCalcBf(val);
+    setFormData((prev) => ({ ...prev, bf: val }));
+  };
 
   const nextStep = () => {
-    if (step < 3) {
+    if (step < 4) {
+      if (step === 2) calculateBF();
       setStep(step + 1);
     } else {
       setLoading(true);
@@ -420,7 +507,7 @@ function OnboardingView({ onComplete }) {
 
   const isStepValid = () => {
     if (step === 1) return formData.name.length > 2;
-    if (step === 2) return formData.height && formData.weight;
+    if (step === 2) return formData.height && formData.weight && formData.waist && formData.neck;
     return true;
   };
 
@@ -431,16 +518,16 @@ function OnboardingView({ onComplete }) {
           <div className="absolute inset-0 bg-violet-600 blur-xl opacity-50 animate-pulse" />
           <${Zap} size=${32} className="text-violet-500 relative z-10" />
         </div>
-        <h2 className="text-2xl font-black italic mb-2">INITIALIZING PROFILE</h2>
+        <h2 className="text-2xl font-black italic mb-2">BUILDING ATHLETE PROFILE</h2>
         <div className="flex flex-col gap-2 w-full max-w-xs text-xs font-mono text-zinc-500 mt-4">
           <div className="flex justify-between animate-in fade-in slide-in-from-left duration-500 delay-100">
-            <span>&gt; BIOMETRICS</span> <span className="text-emerald-500">VERIFIED</span>
+            <span>&gt; IDENTITY</span> <span className="text-emerald-500">VERIFIED</span>
           </div>
           <div className="flex justify-between animate-in fade-in slide-in-from-left duration-500 delay-300">
-            <span>&gt; ID GENERATION</span> <span className="text-emerald-500">COMPLETE</span>
+            <span>&gt; BODY COMPOSITION</span> <span className="text-emerald-500">ANALYZED</span>
           </div>
           <div className="flex justify-between animate-in fade-in slide-in-from-left duration-500 delay-500">
-            <span>&gt; SYNCING TOBY AI</span> <span className="text-violet-500 animate-pulse">CONNECTING...</span>
+            <span>&gt; GENERATING PROFILE</span> <span className="text-violet-500 animate-pulse">CREATING...</span>
           </div>
         </div>
       </div>
@@ -453,19 +540,21 @@ function OnboardingView({ onComplete }) {
       <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full z-10">
         <div className="mb-8">
           <div className="flex gap-2 mb-6">
-            ${[1, 2, 3].map(
+            ${[1, 2, 3, 4].map(
               (i) => html`<div key=${i} className=${`h-1 flex-1 rounded-full transition-all duration-500 ${step >= i ? 'bg-violet-600' : 'bg-zinc-800'}`} />`
             )}
           </div>
           <h1 className="text-4xl font-black italic uppercase leading-[0.9]">
             ${step === 1 && 'Identity\nVerification'}
-            ${step === 2 && 'Biometric\nScan'}
-            ${step === 3 && 'Mission\nObjective'}
+            ${step === 2 && 'Body\nScanner'}
+            ${step === 3 && 'Social\nIdentity'}
+            ${step === 4 && 'Mission\nObjective'}
           </h1>
           <p className="text-zinc-500 mt-2 text-sm">
-            ${step === 1 && 'Enter your credentials to access The Lab.'}
-            ${step === 2 && 'Toby uses this data to calibrate your training.'}
-            ${step === 3 && 'What are we destroying today?'}
+            ${step === 1 && 'Start your journey at The Lab.'}
+            ${step === 2 && 'We use the Navy Method for accurate BF% calculation.'}
+            ${step === 3 && 'Customize how others see you in The Squad.'}
+            ${step === 4 && 'Define your primary directive.'}
           </p>
         </div>
 
@@ -482,11 +571,20 @@ function OnboardingView({ onComplete }) {
                   autoFocus
                 />
               </div>
-              <div className="p-4 bg-zinc-900/50 border border-white/5 rounded-xl flex gap-3 items-center">
-                <${Fingerprint} size=${24} className="text-zinc-500" />
-                <div>
-                  <div className="text-xs font-bold text-zinc-300">LAB ID: <span className="font-mono text-zinc-500">PENDING...</span></div>
-                  <div className="text-[10px] text-zinc-600">Generated upon completion.</div>
+              <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Gender</label>
+                <div className="grid grid-cols-2 gap-3">
+                  ${['Male', 'Female'].map(
+                    (g) => html`
+                      <button
+                        key=${g}
+                        onClick=${() => setFormData({ ...formData, gender: g })}
+                        className=${`p-3 rounded-xl border font-bold text-sm ${formData.gender === g ? 'bg-zinc-800 border-violet-500 text-white' : 'border-zinc-800 text-zinc-500'}`}
+                      >
+                        ${g}
+                      </button>
+                    `
+                  )}
                 </div>
               </div>
             </div>
@@ -496,12 +594,13 @@ function OnboardingView({ onComplete }) {
             <div className="space-y-4 animate-in fade-in slide-in-from-right duration-300">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Height</label>
+                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Height (in)</label>
                   <input
+                    type="number"
                     value=${formData.height}
                     onChange=${(event) => setFormData({ ...formData, height: event.target.value })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
-                    placeholder="5'11&quot;"
+                    placeholder="70"
                   />
                 </div>
                 <div>
@@ -515,20 +614,88 @@ function OnboardingView({ onComplete }) {
                   />
                 </div>
               </div>
-              <div>
-                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Body Fat % (Est.)</label>
-                <input
-                  type="number"
-                  value=${formData.bf}
-                  onChange=${(event) => setFormData({ ...formData, bf: event.target.value })}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
-                  placeholder="15"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Neck (in)</label>
+                  <input
+                    type="number"
+                    value=${formData.neck}
+                    onChange=${(event) => setFormData({ ...formData, neck: event.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
+                    placeholder="15"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Waist (in)</label>
+                  <input
+                    type="number"
+                    value=${formData.waist}
+                    onChange=${(event) => setFormData({ ...formData, waist: event.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
+                    placeholder="32"
+                  />
+                </div>
               </div>
+              ${formData.gender === 'Female' && html`
+                <div>
+                  <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Hip (in)</label>
+                  <input
+                    type="number"
+                    value=${formData.hip}
+                    onChange=${(event) => setFormData({ ...formData, hip: event.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
+                    placeholder="36"
+                  />
+                </div>
+              `}
+              ${formData.height && formData.waist && formData.neck && html`
+                <div className="bg-violet-900/20 border border-violet-500/30 p-3 rounded-xl flex items-center justify-between">
+                  <div className="text-sm font-bold text-violet-300">Estimated Body Fat</div>
+                  <div className="text-xl font-black text-white">
+                    ${(() => {
+                      if (!isValidBfInputs(formData)) return '--';
+                      const h = parseFloat(formData.height);
+                      const n = parseFloat(formData.neck);
+                      const w = parseFloat(formData.waist);
+                      const hip = parseFloat(formData.hip || 0);
+                      let res = 0;
+                      if (formData.gender === 'Male') res = 86.01 * Math.log10(w - n) - 70.041 * Math.log10(h) + 36.76;
+                      else res = 163.205 * Math.log10(w + hip - n) - 97.684 * Math.log10(h) - 78.387;
+                      return Number.isNaN(res) ? '--' : `${Math.max(2, res).toFixed(1)}%`;
+                    })()}
+                  </div>
+                </div>
+              `}
             </div>
           `}
 
           ${step === 3 && html`
+            <div className="space-y-4 animate-in fade-in slide-in-from-right duration-300">
+              <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Squad Handle</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-4 text-zinc-500 font-bold">@</span>
+                  <input
+                    value=${formData.handle}
+                    onChange=${(event) => setFormData({ ...formData, handle: event.target.value })}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 pl-8 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
+                    placeholder="iron_taylor"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Bio / Manifesto</label>
+                <textarea
+                  value=${formData.bio}
+                  onChange=${(event) => setFormData({ ...formData, bio: event.target.value })}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm font-medium focus:outline-none focus:border-violet-500 transition-colors h-24 resize-none"
+                  placeholder="e.g. Chasing the 1000lb club. Coffee addict. Early riser."
+                ></textarea>
+              </div>
+            </div>
+          `}
+
+          ${step === 4 && html`
             <div className="space-y-3 animate-in fade-in slide-in-from-right duration-300">
               ${['Strength', 'Aesthetics', 'Performance'].map(
                 (goal) => html`
@@ -556,7 +723,7 @@ function OnboardingView({ onComplete }) {
             : html`<div />`}
 
           <${Button} primary disabled=${!isStepValid()} onClick=${nextStep}>
-            ${step === 3 ? 'INITIALIZE SYSTEM' : 'NEXT STEP'}
+            ${step === 4 ? 'INITIALIZE SYSTEM' : 'NEXT STEP'}
           </${Button}>
         </div>
       </div>
@@ -1115,91 +1282,143 @@ function BookingView({ setTab, addXp, userProfile }) {
   `;
 }
 
-// --- PROFILE & STATS VIEW ---
-function ProfileView({ user, log, addFood, close }) {
-  const [scanning, setScanning] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [subTab, setSubTab] = useState('stats');
-
-  const handleScan = () => {
-    setScanning(true);
-    setTimeout(() => {
-      setScanning(false);
-      setAnalyzing(true);
-      setTimeout(() => {
-        setAnalyzing(false);
-        addFood({ name: 'Grilled Chicken Salad', macros: { p: 35, c: 12, f: 15 } });
-      }, 1500);
-    }, 2000);
-  };
-
-  if (scanning)
-    return html`
-      <div className="fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center">
-        <div className="w-full h-full relative">
-          <div className="absolute inset-0 bg-zinc-900">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border-2 border-violet-500 rounded-lg animate-pulse z-10" />
-            <p className="absolute bottom-20 left-0 right-0 text-center text-white font-mono text-sm">ALIGN FOOD IN FRAME</p>
-            <button onClick=${() => setScanning(false)} className="absolute top-4 right-4 text-white"><${X} size=${24} /></button>
-          </div>
-        </div>
-      </div>
-    `;
+// --- PROFILE & STATS VIEW (NEW SOCIAL STYLE) ---
+function ProfileView({ user, log, addFood, close, myXp, level }) {
+  const [subTab, setSubTab] = useState('journey');
 
   return html`
-    <div className="space-y-6 pb-20">
-      <div className="flex items-center justify-between">
-        <button onClick=${close} className="p-2 bg-zinc-900 rounded-full border border-white/10 hover:bg-zinc-800"><${ArrowLeft} size=${20} /></button>
-        <h2 className="text-xl font-black italic">YOUR PROFILE</h2>
-        <button className="flex items-center gap-2 bg-zinc-900 border border-white/10 px-3 py-1.5 rounded-full text-[10px] font-bold text-blue-400">Sync</button>
+    <div className="pb-20 relative">
+      <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-violet-900/40 to-zinc-950 z-0" />
+
+      <div className="relative z-10 flex justify-between items-center mb-4">
+        <button onClick=${close} className="p-2 bg-black/20 backdrop-blur rounded-full hover:bg-black/40"><${ArrowLeft} size=${20} /></button>
+        <button className="p-2 bg-black/20 backdrop-blur rounded-full hover:bg-black/40"><${Edit3} size=${18} /></button>
       </div>
 
-      <div className="flex p-1 bg-zinc-900 rounded-xl border border-white/5">
+      <div className="relative z-10 flex flex-col items-center text-center mb-6">
+        <div className="w-24 h-24 rounded-full bg-zinc-800 border-4 border-zinc-950 relative mb-3">
+          <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center bg-zinc-800">
+            <${User} size=${40} className="text-zinc-600" />
+          </div>
+          <div className="absolute bottom-0 right-0 bg-zinc-950 p-1 rounded-full">
+            <div className="bg-violet-600 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border border-zinc-900">
+              ${level}
+            </div>
+          </div>
+        </div>
+        <h2 className="text-2xl font-black italic uppercase leading-none mb-1">${user.name}</h2>
+        <div className="text-zinc-500 text-sm font-medium mb-3">${user.handle}</div>
+
+        <div className="flex gap-4 text-sm mb-4">
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-white">12</span>
+            <span className="text-xs text-zinc-500">Workouts</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-white">${myXp}</span>
+            <span className="text-xs text-zinc-500">Total XP</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-white">4</span>
+            <span className="text-xs text-zinc-500">Streak</span>
+          </div>
+        </div>
+
+        <p className="text-sm text-zinc-400 max-w-xs leading-relaxed mb-4">
+          ${user.bio || 'No bio yet.'}
+        </p>
+
+        <div className="flex gap-3">
+          <${Button} size="sm" className="bg-zinc-800 border-zinc-700">Edit Profile</${Button}>
+          <${Button} size="sm" className="bg-zinc-800 border-zinc-700"><${Share2} size=${14} /></${Button}>
+        </div>
+      </div>
+
+      <div className="flex border-b border-white/10 mb-6 relative z-10">
         <button
-          onClick=${() => setSubTab('stats')}
-          className=${`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${subTab === 'stats' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-500'}`}
+          onClick=${() => setSubTab('journey')}
+          className=${`flex-1 pb-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${subTab === 'journey' ? 'border-violet-500 text-white' : 'border-transparent text-zinc-500'}`}
         >
-          STATS
+          Journey
         </button>
         <button
-          onClick=${() => setSubTab('charts')}
-          className=${`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${subTab === 'charts' ? 'bg-violet-600 text-white shadow-sm' : 'text-zinc-500'}`}
+          onClick=${() => setSubTab('vitals')}
+          className=${`flex-1 pb-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${subTab === 'vitals' ? 'border-violet-500 text-white' : 'border-transparent text-zinc-500'}`}
         >
-          CHARTS
+          Vitals
+        </button>
+        <button
+          onClick=${() => setSubTab('badges')}
+          className=${`flex-1 pb-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${subTab === 'badges' ? 'border-violet-500 text-white' : 'border-transparent text-zinc-500'}`}
+        >
+          Badges
         </button>
       </div>
 
-      ${subTab === 'charts' && html`
-        <div className="space-y-4 animate-in slide-in-from-right">
-          <${Card} className="p-4 bg-zinc-900">
-            <div className="mb-4">
-              <div className="text-xs font-bold text-zinc-500 uppercase">Weight Trend</div>
-              <div className="text-2xl font-black">185.0 <span className="text-emerald-400 text-sm">-2.1 lbs</span></div>
+      ${subTab === 'journey' && html`
+        <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
+          <${Card} className="p-4 bg-zinc-900 border-zinc-800">
+            <div className="flex gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-violet-900/30 flex items-center justify-center text-violet-400"><${Dumbbell} size=${18} /></div>
+              <div>
+                <div className="font-bold text-sm">Crushed Upper Body</div>
+                <div className="text-xs text-zinc-500">Yesterday at 6:00 PM</div>
+              </div>
             </div>
-            <div className="h-32 flex items-end gap-2">
-              ${[60, 55, 65, 50, 45, 40, 35].map(
-                (h, i) => html`
-                  <div key=${i} className="flex-1 bg-zinc-800 rounded-t-sm hover:bg-violet-500 transition-colors relative group">
-                    <div className="absolute inset-x-0 bottom-0 bg-violet-600 rounded-t-sm" style=${{ height: `${h}%` }} />
-                  </div>
-                `
-              )}
+            <div className="bg-black/20 rounded-xl p-3 text-sm text-zinc-300 mb-3 border border-white/5">
+              <div className="flex justify-between mb-1"><span>DB Incline</span> <span className="font-mono font-bold">60lbs x 12</span></div>
+              <div className="flex justify-between"><span>Pull-Ups</span> <span className="font-mono font-bold">BW+25 x 8</span></div>
             </div>
-            <div className="flex justify-between mt-2 text-[10px] text-zinc-600 font-mono">
-              <span>MON</span><span>SUN</span>
+            <div className="flex gap-4 text-zinc-500 text-xs font-bold">
+              <button className="flex items-center gap-1 hover:text-white"><${Heart} size=${14} /> 12</button>
+              <button className="flex items-center gap-1 hover:text-white"><${MessageSquare} size=${14} /> 4</button>
             </div>
           </${Card}>
 
-          <${Card} className="p-4 bg-zinc-900">
-            <div className="mb-4">
-              <div className="text-xs font-bold text-zinc-500 uppercase">Recovery Score</div>
-              <div className="text-2xl font-black text-emerald-400">92% <span className="text-zinc-500 text-sm text-white">Avg</span></div>
+          <${Card} className="p-4 bg-zinc-900 border-zinc-800">
+            <div className="flex gap-3 mb-3">
+              <div className="w-10 h-10 rounded-full bg-yellow-900/30 flex items-center justify-center text-yellow-400"><${Trophy} size=${18} /></div>
+              <div>
+                <div className="font-bold text-sm">Rank Up: Level ${level}</div>
+                <div className="text-xs text-zinc-500">2 days ago</div>
+              </div>
             </div>
-            <div className="h-32 flex items-end gap-2">
-              ${[80, 40, 90, 70, 85, 95, 92].map(
+            <p className="text-sm text-zinc-400 mb-3">Unlocked "Iron Disciple" status. Consistency is key.</p>
+          </${Card}>
+        </div>
+      `}
+
+      ${subTab === 'vitals' && html`
+        <div className="space-y-4 animate-in slide-in-from-right duration-300">
+          <div className="grid grid-cols-2 gap-3">
+            <${Card} className="p-4 bg-zinc-900 border-zinc-800">
+              <div className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Weight</div>
+              <div className="text-2xl font-black">${user.weight} <span className="text-sm text-zinc-500 font-medium">lbs</span></div>
+            </${Card}>
+            <${Card} className="p-4 bg-zinc-900 border-zinc-800">
+              <div className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Body Fat</div>
+              <div className="text-2xl font-black text-emerald-400">${user.bf}%</div>
+            </${Card}>
+            <${Card} className="p-4 bg-zinc-900 border-zinc-800">
+              <div className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Height</div>
+              <div className="text-xl font-bold">${user.height}</div>
+            </${Card}>
+            <${Card} className="p-4 bg-zinc-900 border-zinc-800">
+              <div className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Joined</div>
+              <div className="text-xl font-bold">${user.joined}</div>
+            </${Card}>
+          </div>
+
+          <${Card} className="p-4 bg-zinc-900 border-zinc-800">
+            <div className="flex justify-between items-center mb-4">
+              <div className="font-bold text-sm">Weight History</div>
+              <${TrendingUp} size=${16} className="text-emerald-500" />
+            </div>
+            <div className="h-24 flex items-end gap-2">
+              ${[40, 35, 50, 45, 60, 55, 30].map(
                 (h, i) => html`
                   <div key=${i} className="flex-1 bg-zinc-800 rounded-t-sm relative group">
-                    <div className=${`absolute inset-x-0 bottom-0 rounded-t-sm ${h > 80 ? 'bg-emerald-500' : h > 50 ? 'bg-yellow-500' : 'bg-red-500'}`} style=${{ height: `${h}%` }} />
+                    <div className="absolute inset-x-0 bottom-0 bg-violet-600 rounded-t-sm group-hover:bg-violet-500 transition-colors" style=${{ height: `${h}%` }} />
                   </div>
                 `
               )}
@@ -1208,71 +1427,19 @@ function ProfileView({ user, log, addFood, close }) {
         </div>
       `}
 
-      ${subTab === 'stats' && html`
-        <div className="space-y-6 animate-in slide-in-from-left">
-          <${Card} className="bg-gradient-to-r from-violet-900/40 to-fuchsia-900/40 border-violet-500/30 p-5">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <div className="font-bold text-lg text-white">Referral Program</div>
-                <div className="text-xs text-violet-300">Give friends a free session. You get one too.</div>
-              </div>
-              <${Share2} size=${20} className="text-violet-400" />
-            </div>
-            <div className="bg-black/30 p-3 rounded-xl flex justify-between items-center border border-white/10">
-              <div className="font-mono text-xl font-bold tracking-widest text-white">${user.referralCode}</div>
-              <button className="text-xs font-bold bg-white text-black px-3 py-1.5 rounded-lg">COPY</button>
-            </div>
-            <div className="mt-4 flex gap-4 text-xs font-bold text-zinc-400">
-              <div>Refers: <span className="text-white">${user.referrals}</span></div>
-              <div>Sessions Earned: <span className="text-emerald-400">1 Available</span></div>
-            </div>
-          </${Card}>
-
-          <div className="grid grid-cols-2 gap-3">
-            <${Card} className="p-4 flex flex-col items-center justify-center bg-zinc-900/50">
-              <${Scale} size=${24} className="text-violet-400 mb-2" />
-              <div className="text-2xl font-black">${user.weight} <span className="text-xs text-zinc-500 font-normal">lbs</span></div>
-              <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Weight</div>
-            </${Card}>
-            <${Card} className="p-4 flex flex-col items-center justify-center bg-zinc-900/50">
-              <${Activity} size=${24} className="text-emerald-400 mb-2" />
-              <div className="text-2xl font-black">${user.bf}%</div>
-              <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Body Fat</div>
-            </${Card}>
+      ${subTab === 'badges' && html`
+        <div className="grid grid-cols-3 gap-3 animate-in slide-in-from-right duration-300">
+          <div className="aspect-square bg-zinc-900 rounded-xl border border-white/5 flex flex-col items-center justify-center p-2 text-center">
+            <${Trophy} size=${24} className="text-yellow-500 mb-2" />
+            <div className="text-[10px] font-bold">Early Adopter</div>
           </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">Nutrition Log</h3>
-              <button onClick=${handleScan} className="flex items-center gap-2 text-violet-400 text-xs font-bold hover:text-white transition">
-                <${Camera} size=${16} /> Scan Meal
-              </button>
-            </div>
-
-            ${analyzing && html`
-              <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex items-center gap-3 animate-pulse">
-                <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm font-mono text-zinc-400">AI Analyzing Image...</span>
-              </div>
-            `}
-
-            <div className="space-y-2">
-              ${log.map(
-                (entry) => html`
-                  <div key=${entry.id} className="bg-zinc-900/50 border border-white/5 p-3 rounded-xl flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-sm">${entry.name}</div>
-                      <div className="text-[10px] text-zinc-500 font-mono flex gap-2">
-                        <span className="text-red-400">P: ${entry.p}g</span>
-                        <span className="text-blue-400">C: ${entry.c}g</span>
-                        <span className="text-yellow-400">F: ${entry.f}g</span>
-                      </div>
-                    </div>
-                    <div className="text-xs text-zinc-600 font-mono">${entry.time}</div>
-                  </div>
-                `
-              )}
-            </div>
+          <div className="aspect-square bg-zinc-900 rounded-xl border border-white/5 flex flex-col items-center justify-center p-2 text-center">
+            <${Flame} size=${24} className="text-orange-500 mb-2" />
+            <div className="text-[10px] font-bold">7 Day Streak</div>
+          </div>
+          <div className="aspect-square bg-zinc-900 rounded-xl border border-white/5 flex flex-col items-center justify-center p-2 text-center opacity-50 grayscale">
+            <${Dumbbell} size=${24} className="text-zinc-500 mb-2" />
+            <div className="text-[10px] font-bold">1000 Club</div>
           </div>
         </div>
       `}
@@ -1449,7 +1616,7 @@ function ReactionGame({ onExit, addXp }) {
     <div className="h-[75vh] flex flex-col relative">
       <button onClick=${onExit} className="absolute top-0 right-0 p-2 z-20 bg-black/20 rounded-full"><${X} /></button>
       <div
-        onMouseDown=${handleTap}
+        onPointerDown=${handleTap}
         className=${`flex-1 rounded-3xl flex items-center justify-center flex-col gap-4 cursor-pointer transition-colors duration-100 ${state === 'idle' ? 'bg-zinc-900' : state === 'waiting' ? 'bg-red-900/50' : 'bg-emerald-500'}`}
       >
         ${state === 'idle' && html`
@@ -1535,7 +1702,7 @@ function MemoryGame({ onExit, addXp }) {
 }
 
 // --- MARKET VIEW ---
-function MarketView({ cart, setCart, setShowCart, addFood, addXp, credits }) {
+function MarketView({ cart, setCart, setShowCart, credits }) {
   const [cat, setCat] = useState('all');
 
   const filtered = MARKET_ITEMS.filter((m) => cat === 'all' || m.cat === cat);
@@ -1730,7 +1897,7 @@ function PassModal({ close, user }) {
 
     if (!rootElement) return;
     const root = createRoot(rootElement);
-    root.render(html`<${TheLabUltimate} />`);
+    root.render(html`<${ErrorBoundary}><${TheLabUltimate} /></${ErrorBoundary}>`);
     document.documentElement.dataset.membersLoaded = 'true';
     window.dispatchEvent(new Event('members-app-loaded'));
   } catch (error) {
