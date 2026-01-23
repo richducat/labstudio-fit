@@ -437,21 +437,8 @@ function OnboardingView({ onComplete }) {
   const [loading, setLoading] = useState(false);
   const [calcBf, setCalcBf] = useState(null);
 
-  const isValidBfInputs = (data) => {
-    const h = parseFloat(data.height);
-    const n = parseFloat(data.neck);
-    const w = parseFloat(data.waist);
-    const hip = parseFloat(data.hip || 0);
-    if (![h, n, w].every((val) => Number.isFinite(val))) return false;
-    if (data.gender === 'Male') return w > n;
-    return w + hip > n;
-  };
-
   const calculateBF = () => {
-    if (!isValidBfInputs(formData)) {
-      setCalcBf(null);
-      return;
-    }
+    if (!formData.waist || !formData.neck || !formData.height) return;
     const h = parseFloat(formData.height);
     const n = parseFloat(formData.neck);
     const w = parseFloat(formData.waist);
@@ -627,7 +614,6 @@ function OnboardingView({ onComplete }) {
                   <div className="text-sm font-bold text-violet-300">Estimated Body Fat</div>
                   <div className="text-xl font-black text-white">
                     ${(() => {
-                      if (!isValidBfInputs(formData)) return '--';
                       const h = parseFloat(formData.height);
                       const n = parseFloat(formData.neck);
                       const w = parseFloat(formData.waist);
