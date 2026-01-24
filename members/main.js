@@ -198,6 +198,90 @@ const LIBRARY_CONTENT = [
 
 // --- UTILS & COMPONENTS ---
 
+const QUERY = new URLSearchParams(window.location.search);
+const TEST_MODE = QUERY.get('testMode') === '1' || QUERY.get('test') === '1' || QUERY.get('test') === 'true';
+const FORCE_ERROR = QUERY.get('fail') === '1';
+const APP_STORAGE = {
+  onboarding: 'lab-onboarding-complete',
+  profile: 'lab-user-profile',
+  log: 'lab-telemetry',
+  lastStep: 'lab-last-step',
+  session: 'lab-session-id'
+};
+
+const readStorage = (key, fallback) => {
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (error) {
+    return fallback;
+  }
+};
+
+const writeStorage = (key, value) => {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    // Ignore storage write failures (private mode, etc.)
+  }
+};
+
+const getSessionId = () => {
+  const existing = readStorage(APP_STORAGE.session, null);
+  if (existing) return existing;
+  const next = `lab-${Math.random().toString(36).slice(2, 10)}`;
+  writeStorage(APP_STORAGE.session, next);
+  return next;
+};
+
+const logEvent = (name, payload = {}) => {
+  const entry = { id: Date.now(), ts: new Date().toISOString(), session: getSessionId(), name, payload };
+  const existing = readStorage(APP_STORAGE.log, []);
+  const next = [...existing, entry].slice(-200);
+  writeStorage(APP_STORAGE.log, next);
+  if (TEST_MODE) {
+    console.info('[Lab Event]', entry);
+  }
+};
+
+const useLoadable = ({ label, data, delay = 450, forceError = false }) => {
+  const [state, setState] = useState({ status: 'loading', data: null, error: '' });
+  const requestRef = useRef(0);
+
+  const start = () => {
+    const requestId = Date.now();
+    requestRef.current = requestId;
+    setState({ status: 'loading', data: null, error: '' });
+
+    window.setTimeout(() => {
+      if (requestRef.current !== requestId) return;
+      if (forceError) {
+        setState({ status: 'error', data: null, error: `${label} unavailable. Please try again.` });
+        return;
+      }
+      setState({ status: 'ready', data, error: '' });
+    }, delay);
+  };
+
+  useEffect(() => {
+    start();
+  }, [label, forceError, delay]);
+
+  return { ...state, retry: start };
+};
+
+const LoadError = ({ title, message, onRetry }) => html`
+  <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-sm text-red-200 space-y-3">
+    <div className="flex items-center gap-2 font-bold">
+      <${AlertCircle} size=${16} /> ${title}
+    </div>
+    <div className="text-xs text-red-200/80">${message}</div>
+    <${Button} size="sm" onClick=${onRetry} className="bg-red-500/20 border border-red-500/40 text-red-100">
+      Try again
+    </${Button}>
+  </div>
+`;
+
 const Card = ({ children, className = '', onClick, noBlur }) => html`
   <div
     onClick=${onClick}
@@ -275,9 +359,27 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+const DEFAULT_PROFILE = {
+  name: 'TAYLOR',
+  handle: '@taylor_lifts',
+  bio: 'Chasing PRs and good vibes. 🏋️‍♂️',
+  height: `5'11"`,
+  weight: 185,
+  bf: 14,
+  gender: 'Male',
+  referralCode: 'LAB-8842',
+  referrals: 2,
+  goal: 'Hypertrophy',
+  joined: 'Oct 2023'
+};
+
+const DEFAULT_NUTRITION_LOG = [
+  { id: 1, name: 'Oatmeal + Whey', p: 30, c: 45, f: 5, time: '08:00 AM' }
+];
+
 function TheLabUltimate() {
-  const [onboarding, setOnboarding] = useState(true);
-  const [tab, setTab] = useState('home');
+  const [onboarding, setOnboarding] = useState(() => !readStorage(APP_STORAGE.onboarding, false));
+  const [tab, setTabState] = useState('home');
   const [xp, setXp] = useState(1250);
   const [level, setLevel] = useState(3);
   const [credits, setCredits] = useState(1);
@@ -288,26 +390,38 @@ function TheLabUltimate() {
   const [toast, setToast] = useState({ show: false, amount: 0, text: '' });
 
   // USER PROFILE & REFERRALS
-  const [userProfile, setUserProfile] = useState({
-    name: 'TAYLOR',
-    handle: '@taylor_lifts',
-    bio: 'Chasing PRs and good vibes. 🏋️‍♂️',
-    height: `5'11"`,
-    weight: 185,
-    bf: 14,
-    gender: 'Male',
-    referralCode: 'LAB-8842',
-    referrals: 2,
-    goal: 'Hypertrophy',
-    joined: 'Oct 2023'
-  });
+  const [userProfile, setUserProfile] = useState(() => readStorage(APP_STORAGE.profile, DEFAULT_PROFILE));
 
-  const [nutritionLog, setNutritionLog] = useState([
-    { id: 1, name: 'Oatmeal + Whey', p: 30, c: 45, f: 5, time: '08:00 AM' }
-  ]);
+  const [nutritionLog, setNutritionLog] = useState(() => readStorage('lab-nutrition-log', DEFAULT_NUTRITION_LOG));
+
+  const setTab = (next, meta = {}) => {
+    setTabState(next);
+    if (next === 'book') logEvent('book_session_opened', meta);
+    if (next === 'coach') logEvent('chat_opened', meta);
+  };
+
+  const resetSession = () => {
+    writeStorage(APP_STORAGE.onboarding, false);
+    writeStorage(APP_STORAGE.profile, DEFAULT_PROFILE);
+    writeStorage('lab-nutrition-log', DEFAULT_NUTRITION_LOG);
+    writeStorage(APP_STORAGE.log, []);
+    writeStorage(APP_STORAGE.lastStep, null);
+    setOnboarding(true);
+    setTabState('home');
+    setCart({});
+    setCredits(1);
+    setShowCart(false);
+    setShowPass(false);
+    setShowProfile(false);
+    setUserProfile(DEFAULT_PROFILE);
+    setNutritionLog(DEFAULT_NUTRITION_LOG);
+    logEvent('test_mode_reset');
+  };
 
   // Handle Onboarding Completion
   const handleOnboardingComplete = (data) => {
+    const parsedBf = Number.parseFloat(data.bf);
+    const bfValue = Number.isFinite(parsedBf) ? parsedBf : null;
     setUserProfile((prev) => ({
       ...prev,
       name: data.name,
@@ -315,11 +429,13 @@ function TheLabUltimate() {
       bio: data.bio,
       height: data.height,
       weight: data.weight,
-      bf: data.bf,
+      bf: bfValue,
       goal: data.goal,
       gender: data.gender
     }));
     setOnboarding(false);
+    writeStorage(APP_STORAGE.onboarding, true);
+    logEvent('onboarding_complete', { goal: data.goal });
   };
 
   // XP System
@@ -352,6 +468,14 @@ function TheLabUltimate() {
     };
     setNutritionLog((prev) => [newEntry, ...prev]);
   };
+
+  useEffect(() => {
+    writeStorage(APP_STORAGE.profile, userProfile);
+  }, [userProfile]);
+
+  useEffect(() => {
+    writeStorage('lab-nutrition-log', nutritionLog);
+  }, [nutritionLog]);
 
   if (onboarding) return html`<${OnboardingView} onComplete=${handleOnboardingComplete} />`;
 
@@ -395,6 +519,21 @@ function TheLabUltimate() {
       </header>
 
       <main className="max-w-md mx-auto p-4 animate-in fade-in duration-500 relative z-10">
+        ${TEST_MODE && html`
+          <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-200 rounded-2xl p-4 text-xs space-y-2">
+            <div className="font-bold uppercase tracking-wider flex items-center gap-2">
+              <${AlertCircle} size=${14} /> Test Mode Active
+            </div>
+            <div className="text-yellow-200/80">
+              Stable demo data + telemetry logging enabled. Use “Reset User” between sessions or open a fresh incognito window.
+            </div>
+            <div className="flex gap-2">
+              <${Button} size="sm" onClick=${resetSession} className="bg-yellow-500/20 border border-yellow-500/40 text-yellow-100">
+                Reset User
+              </${Button}>
+            </div>
+          </div>
+        `}
         ${showProfile
           ? html`<${ProfileView} user=${userProfile} log=${nutritionLog} addFood=${addFoodToLog} close=${() => setShowProfile(false)} myXp=${xp} level=${level} />`
           : html`
@@ -413,12 +552,12 @@ function TheLabUltimate() {
         <nav className="fixed bottom-0 left-0 right-0 bg-zinc-950/90 backdrop-blur-xl border-t border-white/10 z-50 pb-safe pt-2 shadow-[0_-10px_40px_-10px_rgba(0,0,0,1)]">
           <div className="max-w-md mx-auto flex justify-around items-center px-1">
             <${NavBtn} icon=${Activity} label="Dash" active=${tab === 'home'} onClick=${() => setTab('home')} />
-            <${NavBtn} icon=${Calendar} label="Book" active=${tab === 'book'} onClick=${() => setTab('book')} />
+            <${NavBtn} icon=${Calendar} label="Book" active=${tab === 'book'} onClick=${() => setTab('book', { source: 'nav' })} />
 
             <div className="-mt-10 relative group">
               <div className="absolute inset-0 bg-violet-600 blur-xl opacity-40 rounded-full group-hover:opacity-60 transition duration-500" />
               <button
-                onClick=${() => setTab('coach')}
+                onClick=${() => setTab('coach', { source: 'nav' })}
                 className=${`h-16 w-16 rounded-full flex items-center justify-center border-4 border-zinc-950 relative z-10 transition-all duration-300 ${tab === 'coach' ? 'bg-white text-violet-600 scale-110 shadow-xl' : 'bg-violet-600 text-white group-hover:bg-violet-500 group-hover:scale-105'}`}
               >
                 <${MessageSquare} size=${26} fill="currentColor" />
@@ -444,6 +583,39 @@ const NavBtn = ({ icon: Icon, label, active, onClick }) => html`
   </button>
 `;
 
+const getBodyFatEstimate = (data) => {
+  const h = Number.parseFloat(data.height);
+  const n = Number.parseFloat(data.neck);
+  const w = Number.parseFloat(data.waist);
+  const hip = Number.parseFloat(data.hip || 0);
+
+  if (![h, n, w].every((val) => Number.isFinite(val) && val > 0)) {
+    return { value: null, error: '' };
+  }
+
+  if (data.gender === 'Male' && w <= n) {
+    return { value: null, error: 'We’ll compute this later.' };
+  }
+
+  if (data.gender === 'Female' && w + hip <= n) {
+    return { value: null, error: 'We’ll compute this later.' };
+  }
+
+  let result = 0;
+  if (data.gender === 'Male') {
+    result = 86.01 * Math.log10(w - n) - 70.041 * Math.log10(h) + 36.76;
+  } else {
+    result = 163.205 * Math.log10(w + hip - n) - 97.684 * Math.log10(h) - 78.387;
+  }
+
+  if (!Number.isFinite(result)) {
+    return { value: null, error: 'We’ll compute this later.' };
+  }
+
+  const val = Math.max(2, Math.min(50, result)).toFixed(1);
+  return { value: val, error: '' };
+};
+
 // --- ONBOARDING VIEW (ENHANCED) ---
 function OnboardingView({ onComplete }) {
   const [step, setStep] = useState(1);
@@ -461,33 +633,54 @@ function OnboardingView({ onComplete }) {
     goal: 'Strength'
   });
   const [loading, setLoading] = useState(false);
-  const [calcBf, setCalcBf] = useState(null);
+  const [calcError, setCalcError] = useState('');
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  const stepLabels = {
+    1: 'Identity Verification',
+    2: 'Body Scanner',
+    3: 'Social Identity',
+    4: 'Mission Objective'
+  };
+
+  useEffect(() => {
+    const label = stepLabels[step];
+    logEvent('onboarding_step_viewed', { step, label });
+    writeStorage(APP_STORAGE.lastStep, { step, label, ts: new Date().toISOString() });
+  }, [step]);
+
+  useEffect(() => {
+    if (!loading) return;
+    const timer = window.setTimeout(() => setLoadingTimeout(true), 5000);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
+
+  useEffect(() => {
+    if (!calcError) return;
+    const estimate = getBodyFatEstimate(formData);
+    if (estimate.value) setCalcError('');
+  }, [formData.height, formData.neck, formData.waist, formData.hip, formData.gender]);
 
   const calculateBF = () => {
-    if (!formData.waist || !formData.neck || !formData.height) return;
-    const h = parseFloat(formData.height);
-    const n = parseFloat(formData.neck);
-    const w = parseFloat(formData.waist);
-    const hip = parseFloat(formData.hip || 0);
-
-    let result = 0;
-    if (formData.gender === 'Male') {
-      result = 86.01 * Math.log10(w - n) - 70.041 * Math.log10(h) + 36.76;
-    } else {
-      result = 163.205 * Math.log10(w + hip - n) - 97.684 * Math.log10(h) - 78.387;
+    const estimate = getBodyFatEstimate(formData);
+    if (!estimate.value) {
+      setCalcError(estimate.error || 'We’ll compute this later.');
+      setFormData((prev) => ({ ...prev, bf: '' }));
+      logEvent('body_fat_calc_failed', { reason: estimate.error || 'missing_inputs' });
+      return;
     }
-
-    const val = Math.max(2, Math.min(50, result)).toFixed(1);
-    setCalcBf(val);
-    setFormData((prev) => ({ ...prev, bf: val }));
+    setCalcError('');
+    setFormData((prev) => ({ ...prev, bf: estimate.value }));
   };
 
   const nextStep = () => {
+    logEvent('onboarding_step_completed', { step, label: stepLabels[step] });
     if (step < 4) {
       if (step === 2) calculateBF();
       setStep(step + 1);
     } else {
       setLoading(true);
+      logEvent('profile_build_started');
       setTimeout(() => onComplete(formData), 2500);
     }
   };
@@ -517,6 +710,14 @@ function OnboardingView({ onComplete }) {
             <span>&gt; GENERATING PROFILE</span> <span className="text-violet-500 animate-pulse">CREATING...</span>
           </div>
         </div>
+        ${loadingTimeout && html`
+          <div className="mt-6 text-xs text-zinc-400">
+            This is taking longer than expected. You can continue now.
+          </div>
+          <${Button} size="sm" primary onClick=${() => onComplete(formData)} className="mt-3">
+            Continue
+          </${Button}>
+        `}
       </div>
     `;
 
@@ -640,18 +841,13 @@ function OnboardingView({ onComplete }) {
                   <div className="text-sm font-bold text-violet-300">Estimated Body Fat</div>
                   <div className="text-xl font-black text-white">
                     ${(() => {
-                      const h = parseFloat(formData.height);
-                      const n = parseFloat(formData.neck);
-                      const w = parseFloat(formData.waist);
-                      const hip = parseFloat(formData.hip || 0);
-                      let res = 0;
-                      if (formData.gender === 'Male') res = 86.01 * Math.log10(w - n) - 70.041 * Math.log10(h) + 36.76;
-                      else res = 163.205 * Math.log10(w + hip - n) - 97.684 * Math.log10(h) - 78.387;
-                      return Number.isNaN(res) ? '--' : `${Math.max(2, res).toFixed(1)}%`;
+                      const estimate = getBodyFatEstimate(formData);
+                      return estimate.value ? `${estimate.value}%` : '--';
                     })()}
                   </div>
                 </div>
               `}
+              ${calcError && html`<div className="text-xs text-yellow-400">${calcError}</div>`}
             </div>
           `}
 
@@ -712,6 +908,17 @@ function OnboardingView({ onComplete }) {
             ${step === 4 ? 'INITIALIZE SYSTEM' : 'NEXT STEP'}
           </${Button}>
         </div>
+        ${step === 3 && html`
+          <button
+            onClick=${() => setStep(4)}
+            className="mt-4 text-xs text-zinc-500 hover:text-white transition text-center w-full"
+          >
+            Skip for now
+          </button>
+        `}
+        ${!isStepValid() && html`
+          <div className="mt-2 text-xs text-red-400">Complete the required fields to continue.</div>
+        `}
       </div>
     </div>
   `;
@@ -754,7 +961,9 @@ function HomeView({ xp, level, setTab, nutritionLog, credits, userProfile }) {
             </div>
             <div className="text-right">
               <div className="text-xs font-bold text-violet-400">${userProfile.weight} lbs</div>
-              <div className="text-[10px] text-zinc-500">${userProfile.bf}% BF</div>
+              <div className="text-[10px] text-zinc-500">
+                ${Number.isFinite(userProfile.bf) ? `${userProfile.bf}% BF` : 'We’ll compute this later'}
+              </div>
             </div>
           </div>
 
@@ -788,7 +997,7 @@ function HomeView({ xp, level, setTab, nutritionLog, credits, userProfile }) {
           </div>
         </${Card}>
 
-        <${Card} className="mb-4 bg-gradient-to-r from-violet-900/20 to-zinc-900 border-l-4 border-l-violet-500 p-4" onClick=${() => setTab('book')}>
+        <${Card} className="mb-4 bg-gradient-to-r from-violet-900/20 to-zinc-900 border-l-4 border-l-violet-500 p-4" onClick=${() => setTab('book', { source: 'home_card' })}>
           <div className="flex justify-between items-start mb-2">
             <div className="flex items-center gap-2 text-violet-400 font-bold text-xs uppercase tracking-widest">
               <${Calendar} size=${12} /> Next Mission
@@ -1064,18 +1273,25 @@ function LibraryView() {
 function BookingView({ setTab, addXp, userProfile }) {
   const [step, setStep] = useState(1);
   const [selection, setSelection] = useState({});
+  const sessionLoad = useLoadable({ label: 'Sessions', data: SERVICES, forceError: FORCE_ERROR });
 
   const recScore = 88;
   const suggestedServiceId = 'pt60';
   const suggestedReason = 'High protein intake detected. Recovery optimal. Prime time for Hypertrophy.';
 
+  useEffect(() => {
+    logEvent('booking_viewed');
+  }, []);
+
   const handleBook = () => {
     setStep(3);
     addXp(selection.service.xp);
+    logEvent('book_session_confirmed', { serviceId: selection.service?.id });
   };
 
-  const recommendedService = SERVICES.find((s) => s.id === suggestedServiceId);
-  const otherServices = SERVICES.filter((s) => s.id !== suggestedServiceId);
+  const services = sessionLoad.data || [];
+  const recommendedService = services.find((s) => s.id === suggestedServiceId);
+  const otherServices = services.filter((s) => s.id !== suggestedServiceId);
 
   if (step === 3)
     return html`
@@ -1140,66 +1356,80 @@ function BookingView({ setTab, addXp, userProfile }) {
               <div className="h-px bg-zinc-800 flex-1"></div>
             </div>
 
-            <${Card}
-              onClick=${() => {
-                setSelection({ ...selection, service: recommendedService });
-                setStep(2);
-              }}
-              className="cursor-pointer border-violet-500/40 bg-violet-900/10 hover:bg-violet-900/20 transition group active:scale-[0.98]"
-            >
-              <div className="absolute top-0 right-0 bg-violet-600 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg z-10">OPTIMAL</div>
-              <div className="p-4 pt-6">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="font-bold text-lg text-white group-hover:text-violet-300 transition">${recommendedService.name}</div>
-                    <${Badge} color="violet">${recommendedService.type}</${Badge}>
-                  </div>
-                  <div className="text-right">
-                    <span className="block font-mono text-white font-bold">$${recommendedService.price}</span>
-                    <span className="text-[10px] text-violet-400 font-mono">+${recommendedService.xp} XP</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 items-start mt-3 bg-black/20 p-2 rounded-lg">
-                  <${Info} size=${14} className="text-violet-400 shrink-0 mt-0.5" />
-                  <p className="text-xs text-zinc-400 leading-tight">
-                    <span className="text-violet-400 font-bold">Insight: </span>
-                    ${suggestedReason}
-                  </p>
-                </div>
+            ${sessionLoad.status === 'loading' && html`
+              <div className="bg-zinc-900/60 border border-white/5 rounded-2xl p-6 text-xs text-zinc-500 animate-pulse">
+                Loading protocols…
               </div>
-            </${Card}>
+            `}
+            ${sessionLoad.status === 'error' && html`
+              <${LoadError} title="Protocols unavailable" message=${sessionLoad.error} onRetry=${sessionLoad.retry} />
+            `}
+            ${sessionLoad.status === 'ready' && recommendedService && html`
+              <${Card}
+                onClick=${() => {
+                  setSelection({ ...selection, service: recommendedService });
+                  setStep(2);
+                  logEvent('book_protocol_selected', { serviceId: recommendedService.id, name: recommendedService.name, source: 'toby_pick' });
+                }}
+                className="cursor-pointer border-violet-500/40 bg-violet-900/10 hover:bg-violet-900/20 transition group active:scale-[0.98]"
+              >
+                <div className="absolute top-0 right-0 bg-violet-600 text-white text-[9px] font-bold px-2 py-1 rounded-bl-lg z-10">OPTIMAL</div>
+                <div className="p-4 pt-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="font-bold text-lg text-white group-hover:text-violet-300 transition">${recommendedService.name}</div>
+                      <${Badge} color="violet">${recommendedService.type}</${Badge}>
+                    </div>
+                    <div className="text-right">
+                      <span className="block font-mono text-white font-bold">$${recommendedService.price}</span>
+                      <span className="text-[10px] text-violet-400 font-mono">+${recommendedService.xp} XP</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 items-start mt-3 bg-black/20 p-2 rounded-lg">
+                    <${Info} size=${14} className="text-violet-400 shrink-0 mt-0.5" />
+                    <p className="text-xs text-zinc-400 leading-tight">
+                      <span className="text-violet-400 font-bold">Insight: </span>
+                      ${suggestedReason}
+                    </p>
+                  </div>
+                </div>
+              </${Card}>
+            `}
           </div>
 
           <div>
             <div className="text-xs font-bold text-zinc-500 mb-3 tracking-widest uppercase">Other Protocols</div>
-            <div className="space-y-3">
-              ${otherServices.map(
-                (s) => html`
-                  <${Card}
-                    key=${s.id}
-                    onClick=${() => {
-                      setSelection({ ...selection, service: s });
-                      setStep(2);
-                    }}
-                    className="p-4 cursor-pointer hover:bg-zinc-800 transition group active:scale-[0.98]"
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <div className="font-bold text-lg group-hover:text-zinc-300 transition">${s.name}</div>
-                        <div className="flex gap-2 mt-1">
-                          <${Badge} color="blue">${s.type}</${Badge}>
-                          <span className="text-xs text-zinc-500 flex items-center gap-1"><${Clock} size=${10} /> ${s.time}</span>
+            ${sessionLoad.status === 'ready' && html`
+              <div className="space-y-3">
+                ${otherServices.map(
+                  (s) => html`
+                    <${Card}
+                      key=${s.id}
+                      onClick=${() => {
+                        setSelection({ ...selection, service: s });
+                        setStep(2);
+                        logEvent('book_protocol_selected', { serviceId: s.id, name: s.name, source: 'other' });
+                      }}
+                      className="p-4 cursor-pointer hover:bg-zinc-800 transition group active:scale-[0.98]"
+                    >
+                      <div className="flex justify-between items-start gap-4">
+                        <div>
+                          <div className="font-bold text-lg group-hover:text-zinc-300 transition">${s.name}</div>
+                          <div className="flex gap-2 mt-1">
+                            <${Badge} color="blue">${s.type}</${Badge}>
+                            <span className="text-xs text-zinc-500 flex items-center gap-1"><${Clock} size=${10} /> ${s.time}</span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="block font-mono text-zinc-400 font-bold">$${s.price}</span>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <span className="block font-mono text-zinc-400 font-bold">$${s.price}</span>
-                      </div>
-                    </div>
-                  </${Card}>
-                `
-              )}
-            </div>
+                    </${Card}>
+                  `
+                )}
+              </div>
+            `}
           </div>
         </div>
       `}
@@ -1383,7 +1613,9 @@ function ProfileView({ user, log, addFood, close, myXp, level }) {
             </${Card}>
             <${Card} className="p-4 bg-zinc-900 border-zinc-800">
               <div className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Body Fat</div>
-              <div className="text-2xl font-black text-emerald-400">${user.bf}%</div>
+              <div className="text-2xl font-black text-emerald-400">
+                ${Number.isFinite(user.bf) ? `${user.bf}%` : 'Later'}
+              </div>
             </${Card}>
             <${Card} className="p-4 bg-zinc-900 border-zinc-800">
               <div className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-1">Height</div>
@@ -1440,17 +1672,23 @@ function TobyCoachView() {
   ]);
   const [isListening, setIsListening] = useState(false);
 
+  useEffect(() => {
+    logEvent('chat_opened');
+  }, []);
+
   const addMsg = (text, from = 'user') => {
     setMessages((prev) => [...prev, { id: Date.now(), from, text }]);
   };
 
   const handleAction = (action) => {
     addMsg(action, 'user');
+    logEvent('chat_message_attempted', { text: action });
     setTimeout(() => {
       let resp = '';
       if (action.includes('Push')) resp = 'Love that energy. Let’s hit a Heavy Upper Body session. Warm up with the Neuro Drill first.';
       if (action.includes('Recovery')) resp = 'Smart. Active recovery. 20 min Sauna + 10 min Ice Bath. Book it now?';
       if (action.includes('Surprise')) resp = "Generating 'The Gauntlet' protocol... 4 Rounds, High Intensity. Prepare yourself.";
+      if (!resp) resp = 'I’m syncing with your coach profile right now. Try a quick prompt like “Push for PR” or “Recovery day.”';
       addMsg(resp, 'toby');
     }, 1000);
   };
@@ -1690,8 +1928,9 @@ function MemoryGame({ onExit, addXp }) {
 // --- MARKET VIEW ---
 function MarketView({ cart, setCart, setShowCart, credits }) {
   const [cat, setCat] = useState('all');
+  const marketLoad = useLoadable({ label: 'Products', data: MARKET_ITEMS, forceError: FORCE_ERROR });
 
-  const filtered = MARKET_ITEMS.filter((m) => cat === 'all' || m.cat === cat);
+  const filtered = (marketLoad.data || []).filter((m) => cat === 'all' || m.cat === cat);
 
   return html`
     <div>
@@ -1722,36 +1961,47 @@ function MarketView({ cart, setCart, setShowCart, credits }) {
         </div>
       `}
 
-      <div className="grid grid-cols-2 gap-3 pb-20">
-        ${filtered.map(
-          (item, i) => html`
-            <div key=${item.id} className="bg-zinc-900 rounded-2xl overflow-hidden border border-white/5 group animate-in zoom-in duration-500" style=${{ animationDelay: `${i * 50}ms` }}>
-              <div className="h-32 bg-zinc-800 relative overflow-hidden">
-                <img src=${item.img} alt=${item.name} className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition duration-700" />
-                <div className="absolute top-2 left-2 bg-black/60 backdrop-blur px-2 py-0.5 rounded text-[8px] font-bold text-white tracking-wide border border-white/10">
-                  ${item.tag}
+      ${marketLoad.status === 'loading' && html`
+        <div className="bg-zinc-900/60 border border-white/5 rounded-2xl p-6 text-xs text-zinc-500 animate-pulse">
+          Loading products…
+        </div>
+      `}
+      ${marketLoad.status === 'error' && html`
+        <${LoadError} title="Market unavailable" message=${marketLoad.error} onRetry=${marketLoad.retry} />
+      `}
+      ${marketLoad.status === 'ready' && html`
+        <div className="grid grid-cols-2 gap-3 pb-20">
+          ${filtered.map(
+            (item, i) => html`
+              <div key=${item.id} className="bg-zinc-900 rounded-2xl overflow-hidden border border-white/5 group animate-in zoom-in duration-500" style=${{ animationDelay: `${i * 50}ms` }}>
+                <div className="h-32 bg-zinc-800 relative overflow-hidden">
+                  <img src=${item.img} alt=${item.name} className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition duration-700" />
+                  <div className="absolute top-2 left-2 bg-black/60 backdrop-blur px-2 py-0.5 rounded text-[8px] font-bold text-white tracking-wide border border-white/10">
+                    ${item.tag}
+                  </div>
+                </div>
+                <div className="p-3">
+                  <div className="font-bold text-sm leading-tight mb-1 truncate">${item.name}</div>
+                  <div className="flex justify-between items-center">
+                    <div className="text-zinc-500 text-xs font-mono">$${item.price}</div>
+                    <div className="text-[10px] text-yellow-500 font-bold">+${item.xp} XP</div>
+                  </div>
+                  <button
+                    onClick=${() => {
+                      setCart((prev) => ({ ...prev, [item.id]: (prev[item.id] || 0) + 1 }));
+                      setShowCart(true);
+                      logEvent('market_item_added', { itemId: item.id, name: item.name });
+                    }}
+                    className="mt-3 w-full py-2 bg-zinc-800 hover:bg-white hover:text-black transition rounded-lg text-xs font-bold flex items-center justify-center gap-1 active:scale-95 border border-white/5"
+                  >
+                    ADD <${Plus} size=${12} />
+                  </button>
                 </div>
               </div>
-              <div className="p-3">
-                <div className="font-bold text-sm leading-tight mb-1 truncate">${item.name}</div>
-                <div className="flex justify-between items-center">
-                  <div className="text-zinc-500 text-xs font-mono">$${item.price}</div>
-                  <div className="text-[10px] text-yellow-500 font-bold">+${item.xp} XP</div>
-                </div>
-                <button
-                  onClick=${() => {
-                    setCart((prev) => ({ ...prev, [item.id]: (prev[item.id] || 0) + 1 }));
-                    setShowCart(true);
-                  }}
-                  className="mt-3 w-full py-2 bg-zinc-800 hover:bg-white hover:text-black transition rounded-lg text-xs font-bold flex items-center justify-center gap-1 active:scale-95 border border-white/5"
-                >
-                  ADD <${Plus} size=${12} />
-                </button>
-              </div>
-            </div>
-          `
-        )}
-      </div>
+            `
+          )}
+        </div>
+      `}
     </div>
   `;
 }
