@@ -3539,14 +3539,36 @@ function TobyCoachView() {
   };
 
   const handleAction = (action) => {
-    addMsg(action, 'user');
-    logEvent('chat_message_attempted', { text: action });
+    const trimmed = action.trim();
+    if (!trimmed) {
+      return;
+    }
+    addMsg(trimmed, 'user');
+    logEvent('chat_message_attempted', { text: trimmed });
     setTimeout(() => {
+      const lower = trimmed.toLowerCase();
       let resp = '';
-      if (action.includes('Push')) resp = 'Love that energy. Let’s hit a Heavy Upper Body session. Warm up with the Neuro Drill first.';
-      if (action.includes('Recovery')) resp = 'Smart. Active recovery. 20 min Sauna + 10 min Ice Bath. Book it now?';
-      if (action.includes('Surprise')) resp = "Generating 'The Gauntlet' protocol... 4 Rounds, High Intensity. Prepare yourself.";
-      if (!resp) resp = 'I’m syncing with your coach profile right now. Try a quick prompt like “Push for PR” or “Recovery day.”';
+      if (trimmed.includes('Push')) {
+        resp = 'Love that energy. Heavy upper-body day it is. Warm up with the Neuro Drill first.';
+      } else if (trimmed.includes('Recovery')) {
+        resp = 'Smart. Active recovery. 20 min sauna + 10 min ice bath. Want me to lock it in?';
+      } else if (trimmed.includes('Surprise')) {
+        resp = "Generating 'The Gauntlet' protocol... 4 rounds, high intensity. Prepare yourself.";
+      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying)/.test(lower)) {
+        resp = "Easy there. I can be helpful or I can be petty. Choose wisely.";
+      } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
+        resp = 'You’re welcome. I accept payment in PRs and protein.';
+      } else if (/(tired|sore|burned out|exhausted|fatigued)/.test(lower)) {
+        resp = 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher.';
+      } else if (/(no|not now|nah|nope)/.test(lower)) {
+        resp = 'All good. If you want a plan or a booking, just say the word.';
+      } else if (/(help|plan|workout|train|lift|session)/.test(lower)) {
+        resp = 'I got you. Tell me your goal, time available, and what equipment you have.';
+      } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
+        resp = "Hey. You brought the vibes; I brought the plan. What's the mission today?";
+      } else {
+        resp = `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I’ll make it happen.`;
+      }
       addMsg(resp, 'toby');
     }, 1000);
   };
