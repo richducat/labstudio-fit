@@ -1854,7 +1854,7 @@ function ProfileView({ user, log, addFood, close }) {
 // --- COACH VIEW ---
 function TobyCoachView() {
   const [messages, setMessages] = useState([
-    { id: 1, from: 'toby', text: "Toby 2.0 Online. I've analyzed your recovery data. Your CNS is primed. Do we push for a PR today?" }
+    { id: 1, from: 'toby', text: "Toby 2.0 online. I peeked at your recovery data and your CNS is purring. We chasing a PR, or you want to pretend we're sensible today?" }
   ]);
   const [isListening, setIsListening] = useState(false);
 
@@ -1865,10 +1865,27 @@ function TobyCoachView() {
   const handleAction = (action) => {
     addMsg(action, 'user');
     setTimeout(() => {
+      const lower = action.toLowerCase();
       let resp = '';
-      if (action.includes('Push')) resp = "Love that energy. Let's hit a Heavy Upper Body session. Warm up with the Neuro Drill first.";
-      if (action.includes('Recovery')) resp = 'Smart. Active recovery. 20 min Sauna + 10 min Ice Bath. Book it now?';
-      if (action.includes('Surprise')) resp = "Generating 'The Gauntlet' protocol... 4 Rounds, High Intensity. Prepare yourself.";
+      if (action.includes('Push')) {
+        resp = "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity.";
+      } else if (action.includes('Recovery')) {
+        resp = "Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?";
+      } else if (action.includes('Surprise')) {
+        resp = "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining.";
+      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying)/.test(lower)) {
+        resp = "Easy there, keyboard warrior. I can be helpful or I can be petty. Choose wisely.";
+      } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
+        resp = "You're welcome. I accept payment in PRs and protein.";
+      } else if (/(tired|sore|burned out|exhausted|fatigued)/.test(lower)) {
+        resp = "Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher. Your future self says thanks.";
+      } else if (/(help|plan|workout|train|lift|session)/.test(lower)) {
+        resp = "I got you. Tell me your goal, time available, and what equipment you've got. I'll build the plan and roast you lightly.";
+      } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
+        resp = "Hey. You brought the vibes; I brought the plan. What's the mission today?";
+      } else {
+        resp = `Got it: "${action}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`;
+      }
       addMsg(resp, 'toby');
     }, 1000);
   };
