@@ -196,6 +196,664 @@ const LIBRARY_CONTENT = [
   { id: 3, title: 'Squat Mechanics 101', type: 'Video', dur: '12m' }
 ];
 
+const TOBY_INTERNAL_LLM = {
+  description: 'Internal coaching protocol + intake NLU reference for Toby AI.',
+  coachingProtocolModules: [
+    {
+      title: 'Motivation + outcomes',
+      prompts: ['What motivated you to sign up?', 'What would you like to get out of working together?']
+    },
+    {
+      title: 'Current habits + context',
+      prompts: ['Current eating habits, movement habits, what has worked before, what failed before.']
+    },
+    {
+      title: 'Stress, energy, recovery',
+      prompts: ['Stress high/low moments, what fills/empties energy, sleep goals.']
+    },
+    {
+      title: 'Barriers / pain points',
+      prompts: ['Time, motivation, confusion, injury/pain, equipment, budget, etc. (these become your “pain point” taxonomy).']
+    },
+    {
+      title: 'Goals with time horizons',
+      prompts: [
+        'Some forms literally structure goals as Month 1 / Month 2 / Month 3 / Beyond categories (sleep, self-care, stress, fitness, nutrition).'
+      ]
+    },
+    {
+      title: 'Coaching relationship expectations + readiness',
+      prompts: ['Expectations, what they’ll commit to, willingness to change, etc.']
+    }
+  ],
+  sessionStructureFramework: 'GROW (Topic → Goal → Reality → Options → Will Do).',
+  intakePipelineOverview: [
+    'Intake ingestion: user can write anything.',
+    'NLU extraction layer (hybrid): LLM JSON extraction, deterministic safety scan, embedding + taxonomy mapping.',
+    'Canonical profile output: structured JSON for goals, pain points, constraints, preferences.',
+    'Follow-up question generator for low confidence or ambiguity.',
+    'Program matching / protocol routing based on canonical profile.'
+  ],
+  dataModelStandardsNote: [
+    'Represent goals in a formal way (FHIR Goal resource).',
+    'Represent intake answers using a form/response pattern (FHIR QuestionnaireResponse).',
+    'FHIR is optional but a useful reference for durable schemas.'
+  ],
+  privacyWarning:
+    'Collecting pain, injuries, and health goals is sensitive health-related data. Review HHS resources and state consumer health data laws; even if HIPAA does not apply, privacy obligations may.',
+  llmExtractionPromptTemplate: `# LLM Extraction Prompt (Template)
+
+Use this prompt for an LLM step that converts **messy, layman, unstructured** text into a structured JSON profile.
+
+---
+
+## System / Developer (recommended)
+
+You are an extraction engine for a fitness/health coaching intake.
+- Output **only** valid JSON.
+- Never provide medical diagnosis.
+- If the user mentions any possible red flags (e.g., chest pain, fainting, pregnancy, severe dizziness, heart condition, serious joint issues), set \`triage.requires_human_review = true\` and add appropriate \`triage.recommendations\`.
+- Prefer *asking follow-up questions* when uncertain rather than guessing.
+- Map layman phrases to canonical codes using the provided taxonomy.
+
+---
+
+## Inputs
+
+### User text
+{{USER_TEXT}}
+
+### Taxonomy (JSON)
+{{TAXONOMY_JSON}}
+
+---
+
+## Output JSON schema (high level)
+
+Return an object with:
+- raw_input: { text, locale?, channel? }
+- extractions: { goals[], pain_points[], constraints{}, preferences{} }
+- triage: { safety_flags[], recommendations[], requires_human_review }
+- followups[] (0-5 questions)
+- meta: { model, created_at, confidence_overall, trace_id }
+
+### Rules
+- \`confidence\` must be between 0 and 1.
+- \`goals[].priority\`: 1 = most important.
+- Include \`user_phrase\` to show *exactly* what you matched.
+- If the user gives a numeric target ("lose 20 lbs"), store it in \`goals[].target.value/unit\` and also keep the original phrase.
+
+---
+
+## Example (mini)
+
+User: "I want to tone up, but my knee hurts when I run. I only have dumbbells at home and can train 3 days/week."
+
+Expected goal mapping:
+- "tone up" -> body_recomposition
+Pain point:
+- "knee hurts when I run" -> pain_or_injury
+Constraints:
+- equipment: "dumbbells at home"
+- schedule: "3 days/week"`,
+  referenceImplementationSkeleton: `"""Intake NLU pipeline (reference implementation skeleton)
+
+This file is intentionally dependency-light and framework-agnostic.
+Plug in your chosen LLM + embedding model provider.
+
+Key ideas:
+- taxonomy-first normalization
+- LLM JSON extraction (structured output)
+- safety/triage pass (deterministic + LLM)
+- confidence + follow-up generation
+"""
+
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple
+import json
+import uuid
+from datetime import datetime, timezone
+
+
+@dataclass
+class AnalyzeRequest:
+    text: str
+    channel: str = "chat"
+    locale: str = "en-US"
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+
+def load_taxonomy(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def deterministic_safety_scan(text: str, taxonomy: Dict[str, Any]) -> List[Dict[str, str]]:
+    """Fast keyword scan for safety flags. Keep it conservative."""
+    text_l = text.lower()
+    hits: List[Dict[str, str]] = []
+    for flag in taxonomy.get("safety_flags", []):
+        for phrase in flag.get("trigger_phrases", []):
+            if phrase.lower() in text_l:
+                hits.append({"code": flag["code"], "evidence": phrase})
+                break
+    return hits
+
+
+def call_llm_extract_json(text: str, taxonomy: Dict[str, Any]) -> Dict[str, Any]:
+    """Replace this with your LLM call. Must return a dict matching the schema."""
+    # PSEUDO:
+    # prompt = render_template("llm_extraction_prompt.md", USER_TEXT=text, TAXONOMY_JSON=json.dumps(taxonomy))
+    # raw = llm.complete(prompt, response_format="json")
+    # return json.loads(raw)
+    raise NotImplementedError
+
+
+def analyze_intake(req: AnalyzeRequest, taxonomy: Dict[str, Any]) -> Dict[str, Any]:
+    trace_id = str(uuid.uuid4())
+    created_at = datetime.now(timezone.utc).isoformat()
+
+    # 1) Deterministic safety scan (fast)
+    safety_hits = deterministic_safety_scan(req.text, taxonomy)
+
+    # 2) LLM extraction into structured JSON
+    profile = call_llm_extract_json(req.text, taxonomy)
+
+    # 3) Merge/override triage with deterministic safety
+    triage = profile.setdefault("triage", {})
+    triage_flags = triage.setdefault("safety_flags", [])
+    existing_codes = {f.get("code") for f in triage_flags}
+
+    for h in safety_hits:
+        if h["code"] not in existing_codes:
+            triage_flags.append(h)
+
+    if triage_flags:
+        triage["requires_human_review"] = True
+        triage.setdefault("recommendations", []).append(
+            "Possible health/safety flags detected; route to human review and consider recommending medical clearance."
+        )
+    else:
+        triage.setdefault("requires_human_review", False)
+
+    # 4) Add meta
+    meta = profile.setdefault("meta", {})
+    meta.setdefault("model", "your-llm-name")
+    meta.setdefault("created_at", created_at)
+    meta.setdefault("trace_id", trace_id)
+
+    # 5) Ensure raw_input recorded
+    profile.setdefault("raw_input", {})
+    profile["raw_input"].setdefault("text", req.text)
+    profile["raw_input"].setdefault("channel", req.channel)
+    profile["raw_input"].setdefault("locale", req.locale)
+
+    return profile`,
+  webDataCollectionPlaybook: `# Web Data Collection Playbook (Ethical + Practical)
+
+This playbook is for gathering *inspiration data* (e.g., common intake question topics, common goal phrases, common objections)
+to build your own coaching intake and NLU taxonomy.
+
+This is **not legal advice**.
+
+---
+
+## 1) Prefer licensed / open sources first
+Before scraping, look for:
+- Official APIs
+- Downloadable PDFs with explicit reuse permission
+- Open datasets (e.g., academic corpora, Kaggle/Hugging Face datasets)
+- Content you authored or have explicit rights to use
+
+---
+
+## 2) Always respect site rules + consent signals
+At minimum:
+- Read \`robots.txt\` and follow it
+- Follow site Terms of Service and any explicit data access policies
+- Do not bypass paywalls, logins, or technical restrictions
+- Avoid scraping personal data
+
+Good industry guidance (start here):
+- Zyte: https://www.zyte.com/learn/web-scraping-best-practices/
+- PromptCloud (robots.txt + ethics): https://www.promptcloud.com/blog/robots-txt-scraping-compliance-guide/
+
+---
+
+## 3) Be a good web citizen (operational etiquette)
+- Rate limit (per-domain + global)
+- Add jitter (randomized small delays)
+- Identify your crawler with a stable User-Agent + contact info
+- Cache responses so you don't hit the same pages repeatedly
+- Stop or reduce load if you see elevated error rates
+
+---
+
+## 4) Don’t collect what you don’t need
+For building a goals/pain-points detector, you usually only need:
+- Short phrases or paraphrases ("tone up", "get less winded")
+- Non-identifying examples
+- Category counts (how common is a phrase)
+
+You typically do NOT need:
+- Full articles
+- User names/emails/phone numbers
+- Full forum threads
+
+---
+
+## 5) Copyright and “cloning” risk
+Avoid storing or reproducing full page copy (marketing pages, articles, ebooks).
+Instead:
+- Extract *facts* and *signals* (e.g., section headings, CTA types, form field names)
+- Transform content into abstract representations (taxonomies, embeddings, statistics)
+- Generate your own original copy
+
+---
+
+## 6) Health data privacy (important)
+If your product collects anything that can reveal a person’s physical/mental condition, treat it as sensitive.
+In the US, some health apps may not be covered by HIPAA but can still be regulated by state privacy laws.
+
+Start here:
+- HHS resources for mobile health app developers: https://www.hhs.gov/hipaa/for-professionals/special-topics/health-apps/index.html
+
+You should talk to counsel about:
+- Consent flows
+- Data retention/deletion
+- Vendor contracts (DPAs/BAAs where relevant)
+- Security controls (encryption, access logging)
+
+---
+
+## 7) Minimal crawler outline (pseudo)
+- Seed list of URLs (only allowed domains)
+- Fetch \`robots.txt\`, parse with a real parser
+- Crawl only allowed paths
+- Extract only what you need (headings, short phrases, form labels)
+- Store hashed URLs + timestamps + extracted snippets`,
+  taxonomy: {
+    version: '1.0.0',
+    updated_at: '2026-01-25',
+    domain: 'fitness_health_coaching_intake',
+    notes: [
+      'This taxonomy is intended for intent + slot extraction from free text (layman phrasing included).',
+      'All items are self-reported; nothing here is diagnostic or medical advice.',
+      'You should customize categories/phrases for your niche (e.g., postpartum, strength sport, runners, etc.).'
+    ],
+    goal_categories: [
+      {
+        code: 'fat_loss',
+        label: 'Fat loss',
+        common_phrases: [
+          'lose fat',
+          'burn fat',
+          'trim down',
+          'lean out',
+          'drop body fat',
+          'get rid of belly fat',
+          'lose my love handles',
+          'slim down'
+        ],
+        related: ['body_recomposition', 'weight_loss', 'cardio_endurance']
+      },
+      {
+        code: 'weight_loss',
+        label: 'Weight loss',
+        common_phrases: ['lose weight', 'drop pounds', 'get to a healthier weight', 'cut down', 'be lighter'],
+        related: ['fat_loss', 'body_recomposition']
+      },
+      {
+        code: 'weight_gain',
+        label: 'Weight gain',
+        common_phrases: ['gain weight', 'put on weight', 'bulk up', 'get bigger'],
+        related: ['muscle_gain']
+      },
+      {
+        code: 'muscle_gain',
+        label: 'Muscle gain',
+        common_phrases: [
+          'build muscle',
+          'put on muscle',
+          'get stronger muscles',
+          'hypertrophy',
+          'grow my glutes',
+          'add lean mass',
+          'get more muscle definition'
+        ],
+        related: ['strength', 'body_recomposition']
+      },
+      {
+        code: 'strength',
+        label: 'Strength',
+        common_phrases: ['get stronger', 'increase my lifts', 'be stronger', 'lift heavier', 'powerlifting'],
+        related: ['muscle_gain', 'athletic_performance']
+      },
+      {
+        code: 'cardio_endurance',
+        label: 'Cardio & endurance',
+        common_phrases: [
+          'get less winded',
+          'better stamina',
+          'endurance',
+          'cardio',
+          'run longer',
+          'walk without getting tired',
+          'keep up with my kids'
+        ],
+        related: ['general_fitness', 'heart_health']
+      },
+      {
+        code: 'mobility_flexibility',
+        label: 'Mobility & flexibility',
+        common_phrases: ['be more flexible', 'mobility', 'move better', 'less stiff', 'stretching'],
+        related: ['pain_reduction', 'posture_movement_quality']
+      },
+      {
+        code: 'pain_reduction',
+        label: 'Reduce aches & pains',
+        common_phrases: ['back pain', 'knee pain', 'hip pain', 'shoulder pain', 'aches and pains', 'I hurt when I move', 'nagging pain'],
+        related: ['injury_rehab', 'mobility_flexibility']
+      },
+      {
+        code: 'injury_rehab',
+        label: 'Injury rehab / return to activity',
+        common_phrases: ['recover from an injury', 'return to running', 'get back to training', 'PT', 'rehab'],
+        related: ['pain_reduction', 'athletic_performance']
+      },
+      {
+        code: 'body_recomposition',
+        label: 'Body recomposition',
+        common_phrases: ['tone up', 'get lean and strong', 'lose fat and build muscle', 'tighten up', 'look more defined'],
+        related: ['fat_loss', 'muscle_gain']
+      },
+      {
+        code: 'general_fitness',
+        label: 'General fitness & health',
+        common_phrases: ['get in shape', 'be healthier', 'improve my health', 'feel better', 'be fit'],
+        related: ['energy_vitality', 'cardio_endurance', 'strength']
+      },
+      {
+        code: 'energy_vitality',
+        label: 'Energy & vitality',
+        common_phrases: ['more energy', 'less tired', 'fatigue', 'feel energized', 'stop feeling exhausted'],
+        related: ['sleep', 'stress_management']
+      },
+      {
+        code: 'sleep',
+        label: 'Sleep improvement',
+        common_phrases: ['sleep better', 'insomnia', 'sleep quality', 'wake up tired'],
+        related: ['stress_management', 'energy_vitality']
+      },
+      {
+        code: 'stress_management',
+        label: 'Stress & mental wellbeing',
+        common_phrases: ['stress', 'anxiety', 'overwhelmed', 'burned out', 'better mindset', 'mental health'],
+        related: ['sleep', 'emotional_eating']
+      },
+      {
+        code: 'nutrition_habits',
+        label: 'Nutrition habits',
+        common_phrases: ['eat better', 'improve my diet', 'meal prep', 'stop snacking', 'nutrition', 'healthy eating'],
+        related: ['weight_loss', 'fat_loss', 'energy_vitality']
+      },
+      {
+        code: 'athletic_performance',
+        label: 'Sport / performance',
+        common_phrases: ['get faster', 'jump higher', 'sports performance', 'train for a race', 'improve performance'],
+        related: ['strength', 'cardio_endurance', 'mobility_flexibility']
+      }
+    ],
+    pain_points: [
+      {
+        code: 'time_constraints',
+        label: 'Time constraints',
+        common_phrases: [
+          'no time',
+          'busy schedule',
+          'work is crazy',
+          'kids schedule',
+          "can't fit workouts in",
+          'too many responsibilities'
+        ]
+      },
+      {
+        code: 'low_motivation',
+        label: 'Low motivation / consistency',
+        common_phrases: ['I can\'t stay consistent', 'I start and stop', 'I fall off', 'no motivation', 'I get bored', 'hard to stick to it']
+      },
+      {
+        code: 'confusion',
+        label: 'Confusion about what to do',
+        common_phrases: [
+          "I don't know what to do",
+          'too much information',
+          'confused by conflicting advice',
+          'what should I eat',
+          'what workouts should I do',
+          'I need a plan'
+        ]
+      },
+      {
+        code: 'plateau',
+        label: 'Plateau / not seeing results',
+        common_phrases: ['nothing is working', 'stuck', 'plateau', 'not seeing progress', "my weight won't budge", 'my lifts stopped going up']
+      },
+      {
+        code: 'pain_or_injury',
+        label: 'Pain or injury limiting activity',
+        common_phrases: ['knee hurts', 'back hurts', 'shoulder pain', 'injury', "I can't do squats", 'pain when I run']
+      },
+      {
+        code: 'stress_or_overwhelm',
+        label: 'Stress / overwhelm',
+        common_phrases: ['stressed', 'overwhelmed', 'burnt out', 'I stress eat', 'too much going on']
+      },
+      {
+        code: 'sleep_deprivation',
+        label: 'Poor sleep',
+        common_phrases: ["I don't sleep", 'up at night', 'new baby', 'wake up tired', 'insomnia']
+      },
+      {
+        code: 'dietary_restrictions',
+        label: 'Dietary restrictions or preferences',
+        common_phrases: ['vegetarian', 'vegan', 'gluten free', 'dairy free', 'food allergies', 'religious diet']
+      },
+      {
+        code: 'budget_constraints',
+        label: 'Budget constraints',
+        common_phrases: ["can't afford", 'budget', 'too expensive', 'low cost']
+      },
+      {
+        code: 'equipment_constraints',
+        label: 'Limited equipment / space',
+        common_phrases: ['no gym', 'work out at home', 'small apartment', 'only dumbbells', 'no equipment']
+      }
+    ],
+    preference_slots: {
+      training_environment: {
+        allowed: ['home', 'gym', 'outdoors', 'hybrid', 'unknown'],
+        layman_phrases: {
+          home: ['at home', 'in my living room', 'garage gym', "I don't go to the gym"],
+          gym: ['at the gym', 'lifting gym', 'fitness center', 'weight room'],
+          outdoors: ['outside', 'park', 'trail', 'running outside'],
+          hybrid: ['mix of home and gym', 'some days home some gym']
+        }
+      },
+      schedule: {
+        examples: ['3 days/week, 45 minutes', 'weekday mornings', 'weekends only', 'travel 2 weeks/month']
+      },
+      diet_style: {
+        allowed: ['no_preference', 'calorie_tracking', 'macro_tracking', 'keto_low_carb', 'high_protein', 'mediterranean_style', 'plant_based', 'other'],
+        layman_phrases: {
+          calorie_tracking: ['count calories', 'track calories', 'calories in calories out'],
+          macro_tracking: ['track macros', 'protein carbs fat', 'macros'],
+          keto_low_carb: ['keto', 'low carb', 'cut carbs'],
+          high_protein: ['more protein', 'high protein'],
+          plant_based: ['vegan', 'plant based', 'vegetarian']
+        }
+      }
+    },
+    safety_flags: [
+      {
+        code: 'chest_pain',
+        label: 'Chest pain (at rest or with activity)',
+        trigger_phrases: ['chest pain', 'tightness in chest', 'pressure in chest', 'pain in my chest']
+      },
+      {
+        code: 'dizziness_fainting',
+        label: 'Dizziness / fainting / loss of consciousness',
+        trigger_phrases: ['I fainted', 'passed out', 'blackout', 'dizzy spells', 'lose balance from dizziness']
+      },
+      {
+        code: 'heart_condition_or_bp',
+        label: 'Heart condition or high blood pressure (self-reported)',
+        trigger_phrases: ['heart condition', 'heart disease', 'high blood pressure', 'hypertension', 'cardiovascular disease']
+      },
+      {
+        code: 'pregnancy',
+        label: 'Pregnancy',
+        trigger_phrases: ['pregnant', 'expecting', 'due in', 'postpartum', 'just had a baby']
+      },
+      {
+        code: 'bone_joint_issue',
+        label: 'Bone or joint issue made worse by activity',
+        trigger_phrases: ['joint problem', 'arthritis', 'osteoporosis', 'bone issue', 'disc problem']
+      }
+    ]
+  },
+  schema: {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    $id: 'https://example.com/schemas/intake_user_profile.schema.json',
+    title: 'IntakeUserProfile',
+    type: 'object',
+    required: ['raw_input', 'extractions', 'triage', 'meta'],
+    properties: {
+      raw_input: {
+        type: 'object',
+        required: ['text'],
+        properties: {
+          text: { type: 'string' },
+          locale: { type: 'string', description: 'BCP-47 language tag if known, e.g., en-US' },
+          channel: { type: 'string', enum: ['chat', 'form', 'voice', 'email', 'other'] }
+        }
+      },
+      extractions: {
+        type: 'object',
+        required: ['goals', 'pain_points', 'constraints', 'preferences'],
+        properties: {
+          goals: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['code', 'user_phrase', 'confidence'],
+              properties: {
+                code: { type: 'string' },
+                label: { type: 'string' },
+                user_phrase: { type: 'string' },
+                confidence: { type: 'number', minimum: 0, maximum: 1 },
+                priority: { type: 'integer', minimum: 1 },
+                timeframe: { type: 'string', description: "e.g., 'by June', 'in 12 weeks'" },
+                target: {
+                  type: 'object',
+                  properties: {
+                    value: { type: 'number' },
+                    unit: { type: 'string' },
+                    notes: { type: 'string' }
+                  }
+                }
+              }
+            }
+          },
+          pain_points: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['code', 'evidence', 'confidence'],
+              properties: {
+                code: { type: 'string' },
+                label: { type: 'string' },
+                evidence: { type: 'string' },
+                severity: { type: 'string', enum: ['low', 'medium', 'high', 'unknown'] },
+                confidence: { type: 'number', minimum: 0, maximum: 1 }
+              }
+            }
+          },
+          constraints: {
+            type: 'object',
+            properties: {
+              injuries: { type: 'array', items: { type: 'string' } },
+              schedule: { type: 'string' },
+              equipment: { type: 'string' },
+              experience_level: { type: 'string', enum: ['beginner', 'intermediate', 'advanced', 'unknown'] },
+              dietary_restrictions: { type: 'array', items: { type: 'string' } }
+            },
+            additionalProperties: true
+          },
+          preferences: {
+            type: 'object',
+            properties: {
+              training_environment: { type: 'string' },
+              diet_style: { type: 'string' },
+              coaching_style: { type: 'string', description: "e.g., 'high structure', 'flexible', 'accountability-first'" },
+              communication: { type: 'string', description: "e.g., 'text', 'email', 'weekly calls'" }
+            },
+            additionalProperties: true
+          }
+        },
+        additionalProperties: false
+      },
+      triage: {
+        type: 'object',
+        required: ['safety_flags', 'recommendations', 'requires_human_review'],
+        properties: {
+          safety_flags: {
+            type: 'array',
+            items: {
+              type: 'object',
+              required: ['code', 'evidence'],
+              properties: {
+                code: { type: 'string' },
+                evidence: { type: 'string' }
+              }
+            }
+          },
+          recommendations: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Non-medical guidance such as "Ask user to consult clinician before vigorous exercise" or "Ask follow-up question".'
+          },
+          requires_human_review: { type: 'boolean' }
+        }
+      },
+      followups: {
+        type: 'array',
+        items: {
+          type: 'object',
+          required: ['question', 'reason'],
+          properties: {
+            question: { type: 'string' },
+            reason: { type: 'string' },
+            priority: { type: 'integer', minimum: 1 }
+          }
+        }
+      },
+      meta: {
+        type: 'object',
+        required: ['model', 'created_at'],
+        properties: {
+          model: { type: 'string' },
+          created_at: { type: 'string' },
+          confidence_overall: { type: 'number', minimum: 0, maximum: 1 },
+          trace_id: { type: 'string' }
+        }
+      }
+    }
+  }
+};
+
 const DAILY_AGENDA = [
   { id: 'w1', title: 'Upper Body Hypertrophy', time: '6:00 AM', type: 'Workout', action: 'workout' },
   { id: 'c1', title: 'Zone 2 Cardio Ride', time: '12:30 PM', type: 'Cardio', action: 'workout' },
