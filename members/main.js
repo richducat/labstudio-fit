@@ -621,12 +621,17 @@ function OnboardingView({ onComplete }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: '',
+    emailHandle: '',
+    emailDomain: 'gmail.com',
+    customEmailDomain: '',
     handle: '',
     gender: 'Male',
     height: '',
     weight: '',
     neck: '',
     waist: '',
+    neckFeel: '',
+    waistFeel: '',
     hip: '',
     bf: '',
     bio: '',
@@ -660,6 +665,69 @@ function OnboardingView({ onComplete }) {
     const estimate = getBodyFatEstimate(formData);
     if (estimate.value) setCalcError('');
   }, [formData.height, formData.neck, formData.waist, formData.hip, formData.gender]);
+
+  useEffect(() => {
+    if (!formData.emailHandle || formData.handle) return;
+    setFormData((prev) => ({ ...prev, handle: formData.emailHandle }));
+  }, [formData.emailHandle]);
+
+  const emailDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'icloud.com', 'proton.me', 'aol.com', 'custom'];
+
+  const buildRange = (min, max, step = 1) => {
+    const values = [];
+    for (let i = min; i <= max + 0.001; i += step) values.push(Number(i.toFixed(1)));
+    return values;
+  };
+
+  const getMeasurementRange = (type) => {
+    const height = Number.parseFloat(formData.height);
+    const weight = Number.parseFloat(formData.weight);
+    const hasHeight = Number.isFinite(height) && height > 0;
+    const hasWeight = Number.isFinite(weight) && weight > 0;
+    if (!hasHeight) {
+      return type === 'neck'
+        ? { min: 12, max: 20, step: 0.5, helper: 'Add height + weight to narrow this down.' }
+        : { min: 26, max: 50, step: 0.5, helper: 'Add height + weight to narrow this down.' };
+    }
+    const bmi = hasWeight ? (weight * 703) / (height * height) : 22;
+    const baseNeck = height * 0.24 + (bmi - 22) * 0.08;
+    const baseWaist = height * 0.45 + (bmi - 22) * 0.6;
+    if (type === 'neck') {
+      return {
+        min: Math.max(12, Math.round((baseNeck - 2) * 2) / 2),
+        max: Math.min(22, Math.round((baseNeck + 2) * 2) / 2),
+        step: 0.5,
+        helper: `Suggested range based on ${Math.round(height)}" and ${Math.round(weight || height * 2.3)} lbs.`
+      };
+    }
+    return {
+      min: Math.max(26, Math.round((baseWaist - 4) * 2) / 2),
+      max: Math.min(60, Math.round((baseWaist + 4) * 2) / 2),
+      step: 0.5,
+      helper: `Suggested range based on ${Math.round(height)}" and ${Math.round(weight || height * 2.3)} lbs.`
+    };
+  };
+
+  const applyFeelSelection = (type, feel) => {
+    const range = getMeasurementRange(type);
+    const values = buildRange(range.min, range.max, range.step);
+    if (!values.length) return;
+    const mid = values[Math.floor(values.length / 2)];
+    const selectionMap = {
+      small: values[1] ?? values[0],
+      average: mid,
+      large: values[values.length - 2] ?? values[values.length - 1]
+    };
+    const value = selectionMap[feel];
+    if (!value) return;
+    setFormData((prev) => ({
+      ...prev,
+      ...(type === 'neck' ? { neck: `${value}`, neckFeel: feel } : { waist: `${value}`, waistFeel: feel })
+    }));
+  };
+
+  const heightOptions = buildRange(54, 84, 1);
+  const weightOptions = buildRange(90, 350, 5);
 
   const calculateBF = () => {
     const estimate = getBodyFatEstimate(formData);
@@ -760,6 +828,47 @@ function OnboardingView({ onComplete }) {
                 />
               </div>
               <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Email</label>
+                <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <div className="relative">
+                    <span className="absolute left-4 top-4 text-zinc-500 font-bold">@</span>
+                    <input
+                      value=${formData.emailHandle}
+                      onChange=${(event) => setFormData({ ...formData, emailHandle: event.target.value.replace(/\\s/g, '') })}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 pl-8 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors placeholder:text-zinc-700"
+                      placeholder="yourname"
+                    />
+                  </div>
+                  <select
+                    value=${formData.emailDomain}
+                    onChange=${(event) => setFormData({ ...formData, emailDomain: event.target.value })}
+                    className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 text-sm font-bold text-zinc-200 focus:outline-none focus:border-violet-500"
+                  >
+                    ${emailDomains.map(
+                      (domain) => html`<option key=${domain} value=${domain}>${domain === 'custom' ? 'other…' : `@${domain}`}</option>`
+                    )}
+                  </select>
+                </div>
+                ${formData.emailDomain === 'custom' && html`
+                  <input
+                    value=${formData.customEmailDomain}
+                    onChange=${(event) => setFormData({ ...formData, customEmailDomain: event.target.value.replace(/\\s/g, '') })}
+                    className="mt-2 w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-sm font-semibold focus:outline-none focus:border-violet-500 transition-colors"
+                    placeholder="domain.com"
+                  />
+                `}
+                ${(formData.emailHandle || formData.emailDomain) && html`
+                  <div className="mt-2 text-xs text-zinc-500">
+                    ${formData.emailHandle ? 'Preview:' : 'Preview will appear once you add a handle.'}
+                    ${formData.emailHandle && html`
+                      <span className="text-zinc-200 font-semibold">
+                        ${`${formData.emailHandle}@${formData.emailDomain === 'custom' ? formData.customEmailDomain || 'domain.com' : formData.emailDomain}`}
+                      </span>
+                    `}
+                  </div>
+                `}
+              </div>
+              <div>
                 <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Gender</label>
                 <div className="grid grid-cols-2 gap-3">
                   ${['Male', 'Female'].map(
@@ -783,57 +892,108 @@ function OnboardingView({ onComplete }) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Height (in)</label>
-                  <input
-                    type="number"
+                  <select
                     value=${formData.height}
                     onChange=${(event) => setFormData({ ...formData, height: event.target.value })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
-                    placeholder="70"
-                  />
+                  >
+                    <option value="">Select</option>
+                    ${heightOptions.map((height) => html`<option key=${height} value=${height}>${height}"</option>`)}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Weight (lbs)</label>
-                  <input
-                    type="number"
+                  <select
                     value=${formData.weight}
                     onChange=${(event) => setFormData({ ...formData, weight: event.target.value })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
-                    placeholder="185"
-                  />
+                  >
+                    <option value="">Select</option>
+                    ${weightOptions.map((weight) => html`<option key=${weight} value=${weight}>${weight} lbs</option>`)}
+                  </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Neck (in)</label>
-                  <input
-                    type="number"
+                  <select
                     value=${formData.neck}
                     onChange=${(event) => setFormData({ ...formData, neck: event.target.value })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
-                    placeholder="15"
-                  />
+                  >
+                    <option value="">Select</option>
+                    ${(() => {
+                      const range = getMeasurementRange('neck');
+                      return buildRange(range.min, range.max, range.step).map(
+                        (val) => html`<option key=${val} value=${val}>${val}"</option>`
+                      );
+                    })()}
+                  </select>
+                  <div className="mt-2 text-[10px] text-zinc-500">${getMeasurementRange('neck').helper}</div>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-[10px] font-bold">
+                    ${[
+                      { id: 'small', label: 'Smaller' },
+                      { id: 'average', label: 'Average' },
+                      { id: 'large', label: 'Larger' }
+                    ].map(
+                      (feel) => html`
+                        <button
+                          key=${feel.id}
+                          onClick=${() => applyFeelSelection('neck', feel.id)}
+                          className=${`py-2 rounded-lg border ${formData.neckFeel === feel.id ? 'bg-violet-600 border-violet-500 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800'}`}
+                        >
+                          ${feel.label}
+                        </button>
+                      `
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Waist (in)</label>
-                  <input
-                    type="number"
+                  <select
                     value=${formData.waist}
                     onChange=${(event) => setFormData({ ...formData, waist: event.target.value })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
-                    placeholder="32"
-                  />
+                  >
+                    <option value="">Select</option>
+                    ${(() => {
+                      const range = getMeasurementRange('waist');
+                      return buildRange(range.min, range.max, range.step).map(
+                        (val) => html`<option key=${val} value=${val}>${val}"</option>`
+                      );
+                    })()}
+                  </select>
+                  <div className="mt-2 text-[10px] text-zinc-500">${getMeasurementRange('waist').helper}</div>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-[10px] font-bold">
+                    ${[
+                      { id: 'small', label: 'Under' },
+                      { id: 'average', label: 'Average' },
+                      { id: 'large', label: 'Over' }
+                    ].map(
+                      (feel) => html`
+                        <button
+                          key=${feel.id}
+                          onClick=${() => applyFeelSelection('waist', feel.id)}
+                          className=${`py-2 rounded-lg border ${formData.waistFeel === feel.id ? 'bg-violet-600 border-violet-500 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800'}`}
+                        >
+                          ${feel.label}
+                        </button>
+                      `
+                    )}
+                  </div>
                 </div>
               </div>
               ${formData.gender === 'Female' && html`
                 <div>
                   <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Hip (in)</label>
-                  <input
-                    type="number"
+                  <select
                     value=${formData.hip}
                     onChange=${(event) => setFormData({ ...formData, hip: event.target.value })}
                     className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-lg font-bold focus:outline-none focus:border-violet-500 transition-colors"
-                    placeholder="36"
-                  />
+                  >
+                    <option value="">Select</option>
+                    ${buildRange(30, 60, 1).map((hip) => html`<option key=${hip} value=${hip}>${hip}"</option>`)}
+                  </select>
                 </div>
               `}
               ${formData.height && formData.waist && formData.neck && html`
@@ -864,6 +1024,15 @@ function OnboardingView({ onComplete }) {
                     placeholder="iron_taylor"
                   />
                 </div>
+                ${formData.emailHandle && html`
+                  <button
+                    type="button"
+                    onClick=${() => setFormData({ ...formData, handle: formData.emailHandle })}
+                    className="mt-2 text-xs font-bold text-violet-400 hover:text-violet-200 transition"
+                  >
+                    Use your email handle instead
+                  </button>
+                `}
               </div>
               <div>
                 <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 block">Bio / Manifesto</label>
