@@ -1872,28 +1872,14 @@ function TobyCoachView() {
     setTimeout(() => {
       const lower = trimmed.toLowerCase();
       let resp = '';
-      if (/(smart ?ass|sass|roast me|talk trash|be witty|be a smartass)/.test(lower)) {
-        setSassMode(true);
-        resp = "Smart-ass mode on. I'll roast you and still get you stronger.";
-      } else if (/(tone it down|be nice|no sass|be professional|be serious)/.test(lower)) {
-        setSassMode(false);
-        resp = 'Got it. Coach mode: calm, focused, and zero snark.';
-      } else if (trimmed.includes('Push')) {
-        resp = sassMode
-          ? "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity."
-          : 'Heavy upper-body day it is. Warm up with the Neuro Drill first.';
+      if (trimmed.includes('Push')) {
+        resp = "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity.";
       } else if (trimmed.includes('Recovery')) {
-        resp = sassMode
-          ? "Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?"
-          : 'Active recovery queued: 20 min sauna + 10 min ice bath. Want me to lock it in?';
+        resp = "Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?";
       } else if (trimmed.includes('Surprise')) {
-        resp = sassMode
-          ? "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining."
-          : "Generating 'The Gauntlet' protocol... 4 rounds, high intensity.";
-      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying|fuck off|eat shit|screw you)/.test(lower)) {
-        resp = sassMode
-          ? 'Noted. If that was the warm-up, you’re ready. Pick strength, hypertrophy, or recovery.'
-          : 'Heard. Tell me your goal and time available, and I’ll build the plan.';
+        resp = "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining.";
+      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying)/.test(lower)) {
+        resp = "Easy there, keyboard warrior. I can be helpful or I can be petty. Choose wisely.";
       } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
         resp = "You're welcome. I accept payment in PRs and protein.";
       } else if (/(tired|sore|burned out|exhausted|fatigued)/.test(lower)) {
@@ -1909,9 +1895,7 @@ function TobyCoachView() {
           ? "Hey. You brought the vibes; I brought the plan. What's the mission today?"
           : "Hey there. What's the mission today?";
       } else {
-        resp = sassMode
-          ? `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`
-          : `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen.`;
+        resp = `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`;
       }
       addMsg(resp, 'toby');
     }, 1000);
