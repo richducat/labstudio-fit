@@ -3529,6 +3529,7 @@ function TobyCoachView() {
     { id: 1, from: 'toby', text: 'Toby 2.0 Online. I’ve analyzed your recovery data. Your CNS is primed. Do we push for a PR today?' }
   ]);
   const [isListening, setIsListening] = useState(false);
+  const [sassMode, setSassMode] = useState(true);
 
   useEffect(() => {
     logEvent('chat_opened');

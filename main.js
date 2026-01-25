@@ -1857,6 +1857,7 @@ function TobyCoachView() {
     { id: 1, from: 'toby', text: "Toby 2.0 online. I peeked at your recovery data and your CNS is purring. We chasing a PR, or you want to pretend we're sensible today?" }
   ]);
   const [isListening, setIsListening] = useState(false);
+  const [sassMode, setSassMode] = useState(true);
 
   const addMsg = (text, from = 'user') => {
     setMessages((prev) => [...prev, { id: Date.now(), from, text }]);
@@ -1882,11 +1883,17 @@ function TobyCoachView() {
       } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
         resp = "You're welcome. I accept payment in PRs and protein.";
       } else if (/(tired|sore|burned out|exhausted|fatigued)/.test(lower)) {
-        resp = "Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher. Your future self says thanks.";
+        resp = sassMode
+          ? 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher. Your future self says thanks.'
+          : 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher.';
       } else if (/(help|plan|workout|train|lift|session)/.test(lower)) {
-        resp = "I got you. Tell me your goal, time available, and what equipment you've got. I'll build the plan and roast you lightly.";
+        resp = sassMode
+          ? "I got you. Tell me your goal, time available, and what equipment you've got. I'll build the plan and roast you lightly."
+          : "Tell me your goal, time available, and what equipment you've got.";
       } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
-        resp = "Hey. You brought the vibes; I brought the plan. What's the mission today?";
+        resp = sassMode
+          ? "Hey. You brought the vibes; I brought the plan. What's the mission today?"
+          : "Hey there. What's the mission today?";
       } else {
         resp = `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`;
       }
