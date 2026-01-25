@@ -196,6 +196,135 @@ const LIBRARY_CONTENT = [
   { id: 3, title: 'Squat Mechanics 101', type: 'Video', dur: '12m' }
 ];
 
+const DAILY_AGENDA = [
+  { id: 'w1', title: 'Upper Body Hypertrophy', time: '6:00 AM', type: 'Workout', action: 'workout' },
+  { id: 'c1', title: 'Zone 2 Cardio Ride', time: '12:30 PM', type: 'Cardio', action: 'workout' },
+  { id: 'h1', title: 'Hydration Check', time: '2:00 PM', type: 'Habit', action: 'habits' },
+  { id: 'p1', title: 'Progress Photo', time: '8:30 PM', type: 'Check-in', action: 'progress' }
+];
+
+const PROGRESS_TILES = [
+  { id: 'weight', label: 'Body Weight', value: '185 lbs', trend: '+0.4 wk', icon: Scale },
+  { id: 'bodyfat', label: 'Body Fat', value: '14.0%', trend: '-0.3 wk', icon: Activity },
+  { id: 'rhr', label: 'Resting HR', value: '58 bpm', trend: '-2 bpm', icon: Heart },
+  { id: 'photos', label: 'Progress Photos', value: '3 New', trend: 'Added today', icon: Camera },
+  { id: 'nutrition', label: 'Nutrition Avg', value: '92% compliant', trend: '+4% wk', icon: Utensils },
+  { id: 'strength', label: 'Strength PRs', value: '2 this month', trend: 'New bench PR', icon: TrendingUp }
+];
+
+const WORKOUT_PROGRAMS = [
+  {
+    id: 'regular',
+    title: 'Regular Strength',
+    type: 'Regular',
+    desc: 'Track sets, rests, and personal bests.',
+    icon: Dumbbell,
+    data: WORKOUT_TEMPLATE
+  },
+  {
+    id: 'circuit',
+    title: 'Metcon Circuit',
+    type: 'Circuit',
+    desc: 'Move station-to-station with guided timers.',
+    icon: Zap,
+    data: {
+      name: 'Full Body Circuit',
+      rounds: 3,
+      stations: [
+        { name: 'Kettlebell Swings', dur: 45 },
+        { name: 'Push-Ups', dur: 45 },
+        { name: 'Row Erg', dur: 60 },
+        { name: 'Walking Lunges', dur: 45 }
+      ],
+      rest: 30
+    }
+  },
+  {
+    id: 'interval',
+    title: 'Hands-Free Interval',
+    type: 'Interval',
+    desc: 'Voice cues + timers for focus.',
+    icon: Timer,
+    data: {
+      name: 'Sprint Intervals',
+      blocks: [
+        { label: 'Warm Up', dur: 180 },
+        { label: 'Sprint', dur: 40 },
+        { label: 'Recover', dur: 80 },
+        { label: 'Sprint', dur: 40 },
+        { label: 'Recover', dur: 80 },
+        { label: 'Cooldown', dur: 180 }
+      ]
+    }
+  },
+  {
+    id: 'video',
+    title: 'Coach Video',
+    type: 'Video',
+    desc: 'Follow-along workout with form cues.',
+    icon: Video,
+    data: {
+      name: 'Coach Nicole: Total Core',
+      length: '22 min',
+      checkpoints: ['Warm-up flow', 'Core ladder', 'Cooldown stretch']
+    }
+  }
+];
+
+const NUTRITION_GOALS = {
+  calories: 2200,
+  protein: 180,
+  carbs: 210,
+  fat: 65
+};
+
+const HABIT_LIBRARY = [
+  { id: 'habit-1', title: 'Hydrate 100oz', schedule: 'Daily', coach: 'Coach Maya' },
+  { id: 'habit-2', title: '10-Min Mobility', schedule: 'Mon/Wed/Fri', coach: 'Coach Toby' },
+  { id: 'habit-3', title: 'Protein with Breakfast', schedule: 'Daily', coach: 'Coach Nicole' },
+  { id: 'habit-4', title: 'Sleep by 10:30 PM', schedule: 'Weeknights', coach: 'Coach Maya' }
+];
+
+const AUTO_MESSAGES = [
+  { id: 'auto-1', title: 'Morning Momentum', when: 'Daily • 7:00 AM', status: 'Active', preview: 'Start with 20oz water and 5 mins mobility.' },
+  { id: 'auto-2', title: 'Midday Nutrition Tip', when: 'Mon/Wed/Fri • 12:00 PM', status: 'Active', preview: 'Aim for 35g protein at lunch.' },
+  { id: 'auto-3', title: 'Weekend Upsell', when: 'Sat • 10:00 AM', status: 'Paused', preview: 'Book a recovery session for bonus XP.' }
+];
+
+const GROUPS = [
+  { id: 'group-1', name: 'Lab Studio Prime', members: 412, focus: 'Hypertrophy & Strength' },
+  { id: 'group-2', name: 'Sunrise Runners', members: 128, focus: 'Cardio + Mobility' }
+];
+
+const GROUP_FEED = [
+  { id: 'post-1', author: 'Coach Maya', text: 'Shoutout to everyone who hit hydration goals this week! 💧', time: '2h ago', tags: ['announcement'] },
+  { id: 'post-2', author: 'Sarah J.', text: 'New PR on deadlifts: 225x3! 🎉', time: '4h ago', tags: ['milestone'] },
+  { id: 'post-3', author: 'Lab Auto', text: 'Community streak: 82% hit nutrition goals yesterday!', time: '6h ago', tags: ['auto'] }
+];
+
+const CHALLENGE_MODES = [
+  {
+    id: 'leaderboard',
+    title: 'Team Ladder',
+    mode: 'Leaderboard',
+    desc: 'Earn points for workouts, habits, and nutrition compliance.',
+    points: { workout: 120, habit: 20, nutrition: 50, pr: 200 }
+  },
+  {
+    id: 'threshold',
+    title: 'Consistency Threshold',
+    mode: 'Threshold',
+    desc: 'Hit 5 workouts + 12 habits this week to unlock rewards.',
+    threshold: { workouts: 5, habits: 12, bonus: 'Free Recovery Session' }
+  }
+];
+
+const WEARABLES = [
+  { id: 'apple-health', name: 'Apple Health', status: 'Connected', metrics: ['Steps', 'Sleep', 'HRV'] },
+  { id: 'google-health', name: 'Google Health Connect', status: 'Connect', metrics: ['Steps', 'Sleep', 'Heart Rate'] },
+  { id: 'apple-watch', name: 'Apple Watch', status: 'Ready', metrics: ['Workouts', 'Habits', 'Check-ins'] }
+];
+
 // --- UTILS & COMPONENTS ---
 
 const QUERY = new URLSearchParams(window.location.search);
@@ -544,6 +673,12 @@ function TheLabUltimate() {
               ${tab === 'market' && html`<${MarketView} cart=${cart} setCart=${setCart} setShowCart=${setShowCart} credits=${credits} />`}
               ${tab === 'workout' && html`<${WorkoutSessionView} addXp=${addXp} setTab=${setTab} />`}
               ${tab === 'social' && html`<${SocialHubView} myXp=${xp} />`}
+              ${tab === 'nutrition' && html`<${NutritionView} nutritionLog=${nutritionLog} addFood=${addFoodToLog} setTab=${setTab} />`}
+              ${tab === 'habits' && html`<${HabitsView} setTab=${setTab} />`}
+              ${tab === 'messages' && html`<${MessagesView} setTab=${setTab} />`}
+              ${tab === 'community' && html`<${CommunityView} setTab=${setTab} />`}
+              ${tab === 'challenges' && html`<${ChallengesView} setTab=${setTab} />`}
+              ${tab === 'wearables' && html`<${WearablesView} setTab=${setTab} />`}
               ${tab === 'library' && html`<${LibraryView} />`}
             `}
       </main>
@@ -1100,8 +1235,48 @@ function HomeView({ xp, level, setTab, nutritionLog, credits, userProfile }) {
   const progress = Math.min((xp / nextLevel) * 100, 100);
   const todaysCals = nutritionLog.reduce((acc, curr) => acc + (curr.p * 4 + curr.c * 4 + curr.f * 9), 0);
   const todaysProtein = nutritionLog.reduce((acc, curr) => acc + curr.p, 0);
+  const [showQuickLog, setShowQuickLog] = useState(false);
+  const [statsLog, setStatsLog] = useState({ weight: userProfile.weight, bodyFat: userProfile.bf ?? '', note: '' });
+  const defaultTilePrefs = PROGRESS_TILES.map((tile, index) => ({ id: tile.id, visible: true, order: index }));
+  const [tilePrefs, setTilePrefs] = useState(() => readStorage('lab-progress-tiles', defaultTilePrefs));
+  const [showTileEditor, setShowTileEditor] = useState(false);
 
   const sessions = { booked: 5, made: 3, missed: 0 };
+  const orderedTiles = tilePrefs
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((pref) => {
+      const tile = PROGRESS_TILES.find((item) => item.id === pref.id);
+      return tile ? { ...tile, visible: pref.visible } : null;
+    })
+    .filter(Boolean);
+
+  useEffect(() => {
+    writeStorage('lab-progress-tiles', tilePrefs);
+  }, [tilePrefs]);
+
+  const moveTile = (id, direction) => {
+    setTilePrefs((prev) => {
+      const current = [...prev].sort((a, b) => a.order - b.order);
+      const index = current.findIndex((tile) => tile.id === id);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= current.length) return prev;
+      const next = current.map((tile) => ({ ...tile }));
+      const tempOrder = next[index].order;
+      next[index].order = next[nextIndex].order;
+      next[nextIndex].order = tempOrder;
+      return next;
+    });
+  };
+
+  const toggleTile = (id) => {
+    setTilePrefs((prev) => prev.map((tile) => (tile.id === id ? { ...tile, visible: !tile.visible } : tile)));
+  };
+
+  const logDailyStats = () => {
+    logEvent('daily_stats_logged', statsLog);
+    setShowQuickLog(false);
+  };
 
   return html`
     <div className="space-y-6 pb-20">
@@ -1214,6 +1389,130 @@ function HomeView({ xp, level, setTab, nutritionLog, credits, userProfile }) {
         </div>
       </div>
 
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div>
+            <h2 className="font-bold text-lg">Things to do today</h2>
+            <div className="text-xs text-zinc-500">Your daily agenda with jump-ins.</div>
+          </div>
+          <button onClick=${() => setShowQuickLog((prev) => !prev)} className="text-xs font-bold text-violet-400 hover:text-violet-200">
+            ${showQuickLog ? 'Close' : 'Quick Log'}
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          ${DAILY_AGENDA.map(
+            (item) => html`
+              <${Card} key=${item.id} className="p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-violet-400">
+                    ${item.type === 'Workout' ? html`<${Dumbbell} size=${18} />` : null}
+                    ${item.type === 'Cardio' ? html`<${Activity} size=${18} />` : null}
+                    ${item.type === 'Habit' ? html`<${CheckSquare} size=${18} />` : null}
+                    ${item.type === 'Check-in' ? html`<${Camera} size=${18} />` : null}
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm">${item.title}</div>
+                    <div className="text-xs text-zinc-500">${item.time} • ${item.type}</div>
+                  </div>
+                </div>
+                <button
+                  onClick=${() => (item.action === 'progress' ? setShowQuickLog(true) : setTab(item.action))}
+                  className="text-xs font-bold text-white bg-violet-600 px-3 py-1.5 rounded-full hover:bg-violet-500"
+                >
+                  Jump in
+                </button>
+              </${Card}>
+            `
+          )}
+        </div>
+
+        ${showQuickLog && html`
+          <${Card} className="p-4 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-zinc-400 uppercase tracking-widest">
+              <${Camera} size=${14} /> Daily Check-in
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                value=${statsLog.weight}
+                onChange=${(event) => setStatsLog({ ...statsLog, weight: event.target.value })}
+                className="bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm"
+                placeholder="Weight (lbs)"
+              />
+              <input
+                value=${statsLog.bodyFat}
+                onChange=${(event) => setStatsLog({ ...statsLog, bodyFat: event.target.value })}
+                className="bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm"
+                placeholder="Body fat %"
+              />
+            </div>
+            <textarea
+              value=${statsLog.note}
+              onChange=${(event) => setStatsLog({ ...statsLog, note: event.target.value })}
+              className="bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm h-20 resize-none"
+              placeholder="Progress photo notes, mood, soreness..."
+            ></textarea>
+            <div className="flex justify-between items-center text-xs text-zinc-500">
+              <span>Upload progress photos in the Photos tile.</span>
+              <button onClick=${logDailyStats} className="text-xs font-bold text-white bg-emerald-500 px-3 py-1.5 rounded-full">
+                Save
+              </button>
+            </div>
+          </${Card}>
+        `}
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <div>
+            <h2 className="font-bold text-lg">My Progress</h2>
+            <div className="text-xs text-zinc-500">Customize the tiles that matter to you.</div>
+          </div>
+          <button onClick=${() => setShowTileEditor((prev) => !prev)} className="text-xs font-bold text-violet-400 hover:text-violet-200">
+            ${showTileEditor ? 'Done' : 'Edit Tiles'}
+          </button>
+        </div>
+
+        ${showTileEditor && html`
+          <${Card} className="p-3 space-y-2">
+            ${orderedTiles.map(
+              (tile) => html`
+                <div key=${tile.id} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <button onClick=${() => moveTile(tile.id, -1)} className="p-1 bg-zinc-800 rounded"><${ChevronRight} size=${12} className="rotate-180" /></button>
+                    <button onClick=${() => moveTile(tile.id, 1)} className="p-1 bg-zinc-800 rounded"><${ChevronRight} size=${12} /></button>
+                    <span className="font-bold">${tile.label}</span>
+                  </div>
+                  <button
+                    onClick=${() => toggleTile(tile.id)}
+                    className=${`px-2 py-1 rounded-full font-bold ${tile.visible ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}
+                  >
+                    ${tile.visible ? 'Visible' : 'Hidden'}
+                  </button>
+                </div>
+              `
+            )}
+          </${Card}>
+        `}
+
+        <div className="grid grid-cols-2 gap-3">
+          ${orderedTiles
+            .filter((tile) => tile.visible)
+            .map(
+              (tile) => html`
+                <${Card} key=${tile.id} className="p-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs text-zinc-500">
+                    <span className="uppercase font-bold tracking-widest">${tile.label}</span>
+                    <${tile.icon} size=${14} className="text-violet-400" />
+                  </div>
+                  <div className="text-lg font-black">${tile.value}</div>
+                  <div className="text-[10px] text-emerald-400">${tile.trend}</div>
+                </${Card}>
+              `
+            )}
+        </div>
+      </div>
+
       <div>
         <div className="flex justify-between items-end mb-3 px-1">
           <h2 className="font-bold text-lg">Quick Actions</h2>
@@ -1227,7 +1526,7 @@ function HomeView({ xp, level, setTab, nutritionLog, credits, userProfile }) {
                 </div>
                 <div>
                   <div className="font-bold text-lg">Start Workout</div>
-                  <div className="text-xs text-zinc-500">Log sets & rest timers</div>
+                  <div className="text-xs text-zinc-500">Regular, circuit, interval, or video</div>
                 </div>
               </div>
               <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-colors">
@@ -1240,9 +1539,33 @@ function HomeView({ xp, level, setTab, nutritionLog, credits, userProfile }) {
           </${Card}>
 
           <div className="grid grid-cols-2 gap-3">
-            <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('social')}>
+            <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('nutrition')}>
+              <${Utensils} size=${24} className="text-emerald-400 group-hover:scale-110 transition" />
+              <div className="text-xs font-bold">NUTRITION</div>
+            </${Card}>
+            <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('habits')}>
+              <${CheckSquare} size=${24} className="text-yellow-400 group-hover:scale-110 transition" />
+              <div className="text-xs font-bold">HABITS</div>
+            </${Card}>
+            <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('messages')}>
+              <${MessageSquare} size=${24} className="text-violet-400 group-hover:scale-110 transition" />
+              <div className="text-xs font-bold">MESSAGES</div>
+            </${Card}>
+            <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('community')}>
               <${Users} size=${24} className="text-blue-400 group-hover:scale-110 transition" />
-              <div className="text-xs font-bold">THE SQUAD</div>
+              <div className="text-xs font-bold">COMMUNITY</div>
+            </${Card}>
+            <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('challenges')}>
+              <${Trophy} size=${24} className="text-orange-400 group-hover:scale-110 transition" />
+              <div className="text-xs font-bold">CHALLENGES</div>
+            </${Card}>
+            <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('wearables')}>
+              <${Smartphone} size=${24} className="text-cyan-400 group-hover:scale-110 transition" />
+              <div className="text-xs font-bold">WEARABLES</div>
+            </${Card}>
+            <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('social')}>
+              <${Users} size=${24} className="text-pink-400 group-hover:scale-110 transition" />
+              <div className="text-xs font-bold">SQUAD</div>
             </${Card}>
             <${Card} className="p-4 flex flex-col justify-center items-center gap-2 hover:bg-zinc-800 group transition" onClick=${() => setTab('library')}>
               <${BookOpen} size=${24} className="text-emerald-400 group-hover:scale-110 transition" />
@@ -1257,10 +1580,27 @@ function HomeView({ xp, level, setTab, nutritionLog, credits, userProfile }) {
 
 // --- WORKOUT SESSION VIEW (NEW) ---
 function WorkoutSessionView({ addXp, setTab }) {
+  const [activeProgram, setActiveProgram] = useState(null);
   const [activeExercise, setActiveExercise] = useState(0);
   const [sets, setSets] = useState({});
   const [timer, setTimer] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
+  const [blockIndex, setBlockIndex] = useState(0);
+  const [blockTime, setBlockTime] = useState(0);
+  const [blockActive, setBlockActive] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [workoutHistory, setWorkoutHistory] = useState(() => readStorage('lab-workout-history', []));
+  const [personalBests, setPersonalBests] = useState(() =>
+    readStorage('lab-workout-bests', { bench: 185, squat: 245, deadlift: 315 })
+  );
+
+  useEffect(() => {
+    writeStorage('lab-workout-history', workoutHistory);
+  }, [workoutHistory]);
+
+  useEffect(() => {
+    writeStorage('lab-workout-bests', personalBests);
+  }, [personalBests]);
 
   useEffect(() => {
     let interval;
@@ -1272,6 +1612,41 @@ function WorkoutSessionView({ addXp, setTab }) {
     return () => clearInterval(interval);
   }, [timer, timerActive]);
 
+  useEffect(() => {
+    if (!blockActive || blockTime <= 0) return;
+    const interval = setInterval(() => setBlockTime((t) => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [blockActive, blockTime]);
+
+  useEffect(() => {
+    if (!activeProgram || activeProgram.type !== 'Interval') return;
+    const blocks = activeProgram.data.blocks;
+    if (!blockActive || blockTime > 0) return;
+    const nextIndex = blockIndex + 1;
+    if (nextIndex >= blocks.length) {
+      setBlockActive(false);
+      return;
+    }
+    setBlockIndex(nextIndex);
+    setBlockTime(blocks[nextIndex].dur);
+    if (voiceEnabled && window.speechSynthesis) {
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${blocks[nextIndex].label} start`));
+    }
+  }, [blockTime, blockActive, blockIndex, activeProgram, voiceEnabled]);
+
+  useEffect(() => {
+    if (!activeProgram || activeProgram.type !== 'Interval') return;
+    if (blockTime === 10 && voiceEnabled && window.speechSynthesis) {
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance('10 seconds remaining'));
+    }
+  }, [blockTime, activeProgram, voiceEnabled]);
+
+  const formatTime = (s) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+  };
+
   const toggleSet = (exIdx, setIdx) => {
     const key = `${exIdx}-${setIdx}`;
     setSets((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -1281,77 +1656,301 @@ function WorkoutSessionView({ addXp, setTab }) {
     }
   };
 
+  const logWorkout = (program) => {
+    const entry = {
+      id: Date.now(),
+      type: program.type,
+      name: program.data.name,
+      duration: program.type === 'Interval' ? '18 min' : '45 min',
+      completedAt: new Date().toLocaleDateString()
+    };
+    setWorkoutHistory((prev) => [entry, ...prev].slice(0, 12));
+    if (program.type === 'Regular') {
+      setPersonalBests((prev) => ({
+        bench: prev.bench + 5,
+        squat: prev.squat,
+        deadlift: prev.deadlift + 10
+      }));
+    }
+  };
+
   const handleFinish = () => {
+    if (activeProgram) logWorkout(activeProgram);
     addXp(300);
     setTab('home');
   };
 
-  const formatTime = (s) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+  const startInterval = () => {
+    if (!activeProgram || activeProgram.type !== 'Interval') return;
+    setBlockIndex(0);
+    setBlockTime(activeProgram.data.blocks[0].dur);
+    setBlockActive(true);
+    if (voiceEnabled && window.speechSynthesis) {
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(`${activeProgram.data.blocks[0].label} start`));
+    }
   };
 
-  return html`
-    <div className="flex flex-col h-[85vh]">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-black italic uppercase">${WORKOUT_TEMPLATE.name}</h2>
-        <button onClick=${() => setTab('home')} className="p-2 bg-zinc-900 rounded-full"><${X} size=${20} /></button>
-      </div>
+  if (!activeProgram) {
+    return html`
+      <div className="space-y-6 pb-20">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-black italic uppercase">Workouts</h2>
+          <button onClick=${() => setTab('home')} className="p-2 bg-zinc-900 rounded-full"><${X} size=${20} /></button>
+        </div>
 
-      <div className="flex-1 overflow-y-auto space-y-6 pb-20">
-        ${WORKOUT_TEMPLATE.exercises.map(
-          (ex, i) => html`
-            <div key=${ex.id} className=${`p-4 rounded-2xl border ${i === activeExercise ? 'bg-zinc-800 border-violet-500/50' : 'bg-zinc-900/50 border-white/5'}`}>
-              <div className="flex justify-between mb-3" onClick=${() => setActiveExercise(i)}>
-                <div>
-                  <div className="font-bold text-lg">${ex.name}</div>
-                  <div className="text-xs text-zinc-500">${ex.sets} Sets • ${ex.reps} Reps</div>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono font-bold text-violet-400">${ex.weight}</div>
-                </div>
-              </div>
-
-              ${i === activeExercise && html`
-                <div className="space-y-2">
-                  ${Array.from({ length: ex.sets }).map(
-                    (_, s) => html`
-                      <div key=${s} className="flex items-center justify-between bg-zinc-950 p-2 rounded-lg border border-white/5">
-                        <div className="text-xs font-bold text-zinc-500">SET ${s + 1}</div>
-                        <div className="font-mono text-sm text-zinc-300">Previous: ${ex.weight} x 10</div>
-                        <button
-                          onClick=${() => toggleSet(i, s)}
-                          className=${`w-8 h-8 rounded flex items-center justify-center transition-colors ${sets[`${i}-${s}`] ? 'bg-green-500 text-black' : 'bg-zinc-800 text-zinc-500'}`}
-                        >
-                          <${CheckSquare} size=${18} />
-                        </button>
-                      </div>
-                    `
-                  )}
-                </div>
-              `}
+        <${Card} className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Personal Bests</div>
+              <div className="text-lg font-black">PR Dashboard</div>
             </div>
-          `
-        )}
-      </div>
+            <${TrendingUp} size=${18} className="text-emerald-400" />
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="bg-zinc-900/80 rounded-xl p-2">
+              <div className="text-xs text-zinc-500">Bench</div>
+              <div className="font-bold">${personalBests.bench} lbs</div>
+            </div>
+            <div className="bg-zinc-900/80 rounded-xl p-2">
+              <div className="text-xs text-zinc-500">Squat</div>
+              <div className="font-bold">${personalBests.squat} lbs</div>
+            </div>
+            <div className="bg-zinc-900/80 rounded-xl p-2">
+              <div className="text-xs text-zinc-500">Deadlift</div>
+              <div className="font-bold">${personalBests.deadlift} lbs</div>
+            </div>
+          </div>
+        </${Card}>
 
-      <div className="fixed bottom-24 left-0 right-0 p-4 max-w-md mx-auto">
-        ${timerActive
-          ? html`
-              <div className="bg-zinc-900 border border-violet-500/50 p-3 rounded-xl flex items-center justify-between mb-3 animate-in slide-in-from-bottom">
-                <div className="flex items-center gap-2 text-violet-400 font-bold">
-                  <${Timer} size=${18} /> REST
+        <div className="grid gap-3">
+          ${WORKOUT_PROGRAMS.map(
+            (program) => html`
+              <${Card} key=${program.id} className="p-4 flex items-center justify-between hover:bg-zinc-800 transition">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center text-violet-400">
+                    <${program.icon} size=${20} />
+                  </div>
+                  <div>
+                    <div className="font-bold">${program.title}</div>
+                    <div className="text-xs text-zinc-500">${program.desc}</div>
+                  </div>
                 </div>
-                <div className="font-mono text-xl font-bold">${formatTime(timer)}</div>
-                <button onClick=${() => setTimerActive(false)} className="text-xs bg-zinc-800 px-2 py-1 rounded">SKIP</button>
+                <button onClick=${() => setActiveProgram(program)} className="text-xs font-bold text-white bg-violet-600 px-3 py-1.5 rounded-full">
+                  Start
+                </button>
+              </${Card}>
+            `
+          )}
+        </div>
+
+        ${workoutHistory.length > 0 && html`
+          <${Card} className="p-4">
+            <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-2">Progress Graph</div>
+            <div className="h-20 flex items-end gap-2">
+              ${workoutHistory.slice(0, 6).map(
+                (entry, idx) => html`
+                  <div key=${entry.id} className="flex-1 bg-zinc-800 rounded-t-sm relative">
+                    <div className="absolute inset-x-0 bottom-0 bg-violet-600 rounded-t-sm" style=${{ height: `${50 + idx * 8}%` }} />
+                  </div>
+                `
+              )}
+            </div>
+            <div className="text-[10px] text-zinc-500 mt-2">Sessions completed: ${workoutHistory.length}</div>
+          </${Card}>
+        `}
+      </div>
+    `;
+  }
+
+  if (activeProgram.type === 'Regular') {
+    return html`
+      <div className="flex flex-col h-[85vh]">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <div className="text-xs text-zinc-500 uppercase tracking-widest">Regular</div>
+            <h2 className="text-xl font-black italic uppercase">${activeProgram.data.name}</h2>
+          </div>
+          <button onClick=${() => setActiveProgram(null)} className="p-2 bg-zinc-900 rounded-full"><${X} size=${20} /></button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-6 pb-20">
+          ${activeProgram.data.exercises.map(
+            (ex, i) => html`
+              <div key=${ex.id} className=${`p-4 rounded-2xl border ${i === activeExercise ? 'bg-zinc-800 border-violet-500/50' : 'bg-zinc-900/50 border-white/5'}`}>
+                <div className="flex justify-between mb-3" onClick=${() => setActiveExercise(i)}>
+                  <div>
+                    <div className="font-bold text-lg">${ex.name}</div>
+                    <div className="text-xs text-zinc-500">${ex.sets} Sets • ${ex.reps} Reps</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono font-bold text-violet-400">${ex.weight}</div>
+                  </div>
+                </div>
+
+                ${i === activeExercise && html`
+                  <div className="space-y-2">
+                    ${Array.from({ length: ex.sets }).map(
+                      (_, s) => html`
+                        <div key=${s} className="flex items-center justify-between bg-zinc-950 p-2 rounded-lg border border-white/5">
+                          <div className="text-xs font-bold text-zinc-500">SET ${s + 1}</div>
+                          <div className="font-mono text-sm text-zinc-300">Previous: ${ex.weight} x 10</div>
+                          <button
+                            onClick=${() => toggleSet(i, s)}
+                            className=${`w-8 h-8 rounded flex items-center justify-center transition-colors ${sets[`${i}-${s}`] ? 'bg-green-500 text-black' : 'bg-zinc-800 text-zinc-500'}`}
+                          >
+                            <${CheckSquare} size=${18} />
+                          </button>
+                        </div>
+                      `
+                    )}
+                  </div>
+                `}
               </div>
             `
-          : null}
-        <${Button} primary full onClick=${handleFinish}>COMPLETE SESSION</${Button}>
+          )}
+        </div>
+
+        <div className="fixed bottom-24 left-0 right-0 p-4 max-w-md mx-auto">
+          ${timerActive
+            ? html`
+                <div className="bg-zinc-900 border border-violet-500/50 p-3 rounded-xl flex items-center justify-between mb-3 animate-in slide-in-from-bottom">
+                  <div className="flex items-center gap-2 text-violet-400 font-bold">
+                    <${Timer} size=${18} /> REST
+                  </div>
+                  <div className="font-mono text-xl font-bold">${formatTime(timer)}</div>
+                  <button onClick=${() => setTimerActive(false)} className="text-xs bg-zinc-800 px-2 py-1 rounded">SKIP</button>
+                </div>
+              `
+            : null}
+          <${Button} primary full onClick=${handleFinish}>COMPLETE SESSION</${Button}>
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  }
+
+  if (activeProgram.type === 'Circuit') {
+    const circuit = activeProgram.data;
+    return html`
+      <div className="flex flex-col h-[85vh]">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <div className="text-xs text-zinc-500 uppercase tracking-widest">Circuit</div>
+            <h2 className="text-xl font-black italic uppercase">${circuit.name}</h2>
+          </div>
+          <button onClick=${() => setActiveProgram(null)} className="p-2 bg-zinc-900 rounded-full"><${X} size=${20} /></button>
+        </div>
+        <${Card} className="p-4 mb-4">
+          <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-2">Stations</div>
+          <div className="space-y-2">
+            ${circuit.stations.map(
+              (station, idx) => html`
+                <div key=${station.name} className="flex items-center justify-between text-sm">
+                  <span>${idx + 1}. ${station.name}</span>
+                  <span className="text-zinc-500">${station.dur}s</span>
+                </div>
+              `
+            )}
+          </div>
+          <div className="text-xs text-zinc-500 mt-3">Rest between rounds: ${circuit.rest}s • ${circuit.rounds} rounds</div>
+        </${Card}>
+        <${Button} primary full onClick=${handleFinish}>Finish Circuit</${Button}>
+      </div>
+    `;
+  }
+
+  if (activeProgram.type === 'Interval') {
+    const blocks = activeProgram.data.blocks;
+    return html`
+      <div className="flex flex-col h-[85vh]">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <div className="text-xs text-zinc-500 uppercase tracking-widest">Interval</div>
+            <h2 className="text-xl font-black italic uppercase">${activeProgram.data.name}</h2>
+          </div>
+          <button onClick=${() => setActiveProgram(null)} className="p-2 bg-zinc-900 rounded-full"><${X} size=${20} /></button>
+        </div>
+
+        <${Card} className="p-4 mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Hands-free Mode</div>
+            <button onClick=${() => setVoiceEnabled((prev) => !prev)} className=${`text-xs font-bold px-2 py-1 rounded-full ${voiceEnabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-zinc-800 text-zinc-500'}`}>
+              ${voiceEnabled ? 'Voice On' : 'Voice Off'}
+            </button>
+          </div>
+          <div className="text-sm text-zinc-400">Timers + voice cues keep you moving without touching the screen.</div>
+        </${Card}>
+
+        <${Card} className="p-4 mb-4">
+          <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-3">Current Block</div>
+          <div className="text-2xl font-black mb-2">${blocks[blockIndex]?.label}</div>
+          <div className="text-4xl font-mono font-bold text-violet-400">${formatTime(blockTime)}</div>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick=${() => {
+                if (blockActive) {
+                  setBlockActive(false);
+                } else if (blockTime > 0) {
+                  setBlockActive(true);
+                } else {
+                  startInterval();
+                }
+              }}
+              className="flex-1 py-2 bg-violet-600 rounded-lg font-bold text-sm"
+            >
+              ${blockActive ? 'Pause' : blockTime ? 'Resume' : 'Start'}
+            </button>
+            <button onClick=${() => setBlockTime(0)} className="px-3 py-2 bg-zinc-800 rounded-lg text-sm">Skip</button>
+          </div>
+        </${Card}>
+
+        <div className="space-y-2 pb-20">
+          ${blocks.map(
+            (block, idx) => html`
+              <div key=${block.label} className=${`p-3 rounded-xl border ${idx === blockIndex ? 'border-violet-500/50 bg-violet-900/10' : 'border-white/5 bg-zinc-900/60'}`}>
+                <div className="flex justify-between text-sm">
+                  <span>${block.label}</span>
+                  <span className="text-zinc-500">${formatTime(block.dur)}</span>
+                </div>
+              </div>
+            `
+          )}
+        </div>
+
+        <div className="fixed bottom-24 left-0 right-0 p-4 max-w-md mx-auto">
+          <${Button} primary full onClick=${handleFinish}>Complete Interval</${Button}>
+        </div>
+      </div>
+    `;
+  }
+
+  if (activeProgram.type === 'Video') {
+    return html`
+      <div className="space-y-6 pb-20">
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="text-xs text-zinc-500 uppercase tracking-widest">Video</div>
+            <h2 className="text-xl font-black italic uppercase">${activeProgram.data.name}</h2>
+          </div>
+          <button onClick=${() => setActiveProgram(null)} className="p-2 bg-zinc-900 rounded-full"><${X} size=${20} /></button>
+        </div>
+
+        <div className="bg-zinc-900 border border-white/10 rounded-2xl p-4 space-y-3">
+          <div className="h-40 bg-zinc-800 rounded-xl flex items-center justify-center text-zinc-500">
+            <${Video} size=${40} />
+          </div>
+          <div className="text-sm text-zinc-400">Length: ${activeProgram.data.length}</div>
+          <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Coach cues</div>
+          <ul className="text-sm text-zinc-300 space-y-1">
+            ${activeProgram.data.checkpoints.map((point) => html`<li key=${point}>• ${point}</li>`)}
+          </ul>
+        </div>
+
+        <${Button} primary full onClick=${handleFinish}>Finish Video</${Button}>
+      </div>
+    `;
+  }
+
+  return null;
 }
 
 // --- SOCIAL HUB (NEW) ---
@@ -1403,6 +2002,408 @@ function SocialHubView({ myXp }) {
             )}
         </div>
       </div>
+    </div>
+  `;
+}
+
+// --- NUTRITION VIEW ---
+function NutritionView({ nutritionLog, addFood, setTab }) {
+  const [meal, setMeal] = useState({ name: '', p: '', c: '', f: '' });
+  const totals = nutritionLog.reduce(
+    (acc, curr) => ({
+      calories: acc.calories + (curr.p * 4 + curr.c * 4 + curr.f * 9),
+      protein: acc.protein + curr.p,
+      carbs: acc.carbs + curr.c,
+      fat: acc.fat + curr.f
+    }),
+    { calories: 0, protein: 0, carbs: 0, fat: 0 }
+  );
+  const compliance = Math.round((totals.calories / NUTRITION_GOALS.calories) * 100);
+
+  return html`
+    <div className="pb-20 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black italic uppercase">Nutrition</h2>
+        <button onClick=${() => setTab('home')} className="text-xs text-zinc-500 underline">Back</button>
+      </div>
+
+      <${Card} className="p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Daily Goals</div>
+          <div className="text-xs font-bold text-emerald-400">${compliance}% compliant</div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="bg-zinc-900/60 rounded-xl p-3">
+            <div className="text-xs text-zinc-500">Calories</div>
+            <div className="font-bold">${Math.round(totals.calories)} / ${NUTRITION_GOALS.calories}</div>
+          </div>
+          <div className="bg-zinc-900/60 rounded-xl p-3">
+            <div className="text-xs text-zinc-500">Protein</div>
+            <div className="font-bold">${Math.round(totals.protein)}g / ${NUTRITION_GOALS.protein}g</div>
+          </div>
+          <div className="bg-zinc-900/60 rounded-xl p-3">
+            <div className="text-xs text-zinc-500">Carbs</div>
+            <div className="font-bold">${Math.round(totals.carbs)}g / ${NUTRITION_GOALS.carbs}g</div>
+          </div>
+          <div className="bg-zinc-900/60 rounded-xl p-3">
+            <div className="text-xs text-zinc-500">Fat</div>
+            <div className="font-bold">${Math.round(totals.fat)}g / ${NUTRITION_GOALS.fat}g</div>
+          </div>
+        </div>
+      </${Card}>
+
+      <${Card} className="p-4 space-y-3">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Log Meal / Macro</div>
+        <input
+          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm"
+          placeholder="Meal name"
+          value=${meal.name}
+          onChange=${(event) => setMeal({ ...meal, name: event.target.value })}
+        />
+        <div className="grid grid-cols-3 gap-2">
+          <input
+            className="bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm"
+            placeholder="Protein"
+            value=${meal.p}
+            onChange=${(event) => setMeal({ ...meal, p: event.target.value })}
+          />
+          <input
+            className="bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm"
+            placeholder="Carbs"
+            value=${meal.c}
+            onChange=${(event) => setMeal({ ...meal, c: event.target.value })}
+          />
+          <input
+            className="bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm"
+            placeholder="Fat"
+            value=${meal.f}
+            onChange=${(event) => setMeal({ ...meal, f: event.target.value })}
+          />
+        </div>
+        <div className="flex justify-end">
+          <button
+            onClick=${() => {
+              addFood({ name: meal.name || 'Custom meal', macros: { p: Number(meal.p) || 0, c: Number(meal.c) || 0, f: Number(meal.f) || 0 } });
+              setMeal({ name: '', p: '', c: '', f: '' });
+            }}
+            className="text-xs font-bold text-white bg-emerald-500 px-3 py-1.5 rounded-full"
+          >
+            Add Meal
+          </button>
+        </div>
+      </${Card}>
+
+      <${Card} className="p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">MyFitnessPal</div>
+          <${Badge} color="blue">Connected</${Badge}>
+        </div>
+        <div className="text-sm text-zinc-400">Import meals, calories, macros, and meal details automatically.</div>
+        <button
+          onClick=${() => addFood({ name: 'MFP Import: Turkey Bowl', macros: { p: 42, c: 35, f: 12 } })}
+          className="w-full py-2 bg-zinc-800 rounded-lg text-xs font-bold"
+        >
+          Import Latest Meal
+        </button>
+      </${Card}>
+
+      <div className="space-y-2">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Today’s Log</div>
+        ${nutritionLog.map(
+          (entry) => html`
+            <${Card} key=${entry.id} className="p-3 flex items-center justify-between">
+              <div>
+                <div className="font-bold text-sm">${entry.name}</div>
+                <div className="text-xs text-zinc-500">${entry.time}</div>
+              </div>
+              <div className="text-xs text-zinc-400 font-mono">${entry.p}p / ${entry.c}c / ${entry.f}f</div>
+            </${Card}>
+          `
+        )}
+      </div>
+    </div>
+  `;
+}
+
+// --- HABITS VIEW ---
+function HabitsView({ setTab }) {
+  const [habits, setHabits] = useState(() =>
+    readStorage(
+      'lab-habits-state',
+      HABIT_LIBRARY.map((habit) => ({ ...habit, streak: Math.floor(Math.random() * 6) + 1, completed: false }))
+    )
+  );
+
+  useEffect(() => {
+    writeStorage('lab-habits-state', habits);
+  }, [habits]);
+
+  const toggleHabit = (id) => {
+    setHabits((prev) =>
+      prev.map((habit) => {
+        if (habit.id !== id) return habit;
+        const completed = !habit.completed;
+        return {
+          ...habit,
+          completed,
+          streak: completed ? habit.streak + 1 : Math.max(0, habit.streak - 1)
+        };
+      })
+    );
+  };
+
+  return html`
+    <div className="pb-20 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black italic uppercase">Habits</h2>
+        <button onClick=${() => setTab('home')} className="text-xs text-zinc-500 underline">Back</button>
+      </div>
+
+      <${Card} className="p-4">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold mb-3">Assigned by coaches</div>
+        <div className="space-y-2">
+          ${habits.map(
+            (habit) => html`
+              <div key=${habit.id} className="flex items-center justify-between bg-zinc-900/60 p-3 rounded-xl border border-white/5">
+                <div>
+                  <div className="font-bold text-sm">${habit.title}</div>
+                  <div className="text-xs text-zinc-500">${habit.schedule} • ${habit.coach}</div>
+                </div>
+                <button
+                  onClick=${() => toggleHabit(habit.id)}
+                  className=${`w-10 h-10 rounded-full flex items-center justify-center ${habit.completed ? 'bg-emerald-500 text-black' : 'bg-zinc-800 text-zinc-500'}`}
+                >
+                  <${CheckCircle} size=${18} />
+                </button>
+              </div>
+            `
+          )}
+        </div>
+      </${Card}>
+
+      <${Card} className="p-4">
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Streaks + Badges</div>
+          <${Flame} size=${18} className="text-orange-400" />
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+          ${habits.slice(0, 3).map(
+            (habit) => html`
+              <div key=${habit.id} className="bg-zinc-900/60 rounded-xl p-2">
+                <div className="font-bold">${habit.streak} days</div>
+                <div className="text-[10px] text-zinc-500">${habit.title}</div>
+              </div>
+            `
+          )}
+        </div>
+        <div className="mt-3 text-xs text-zinc-500">Milestones unlock badges and auto-posts to your group.</div>
+      </${Card}>
+    </div>
+  `;
+}
+
+// --- MESSAGES VIEW ---
+function MessagesView({ setTab }) {
+  const [messages, setMessages] = useState([
+    { id: 1, from: 'Coach Nicole', text: 'Your form looked solid yesterday. Keep tempo slow on eccentrics.' },
+    { id: 2, from: 'Lab Auto', text: '🔥 You hit a 3-day workout streak!' }
+  ]);
+  const [draft, setDraft] = useState('');
+
+  const sendMessage = () => {
+    if (!draft) return;
+    setMessages((prev) => [{ id: Date.now(), from: 'You', text: draft }, ...prev]);
+    setDraft('');
+  };
+
+  return html`
+    <div className="pb-20 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black italic uppercase">Messages</h2>
+        <button onClick=${() => setTab('home')} className="text-xs text-zinc-500 underline">Back</button>
+      </div>
+
+      <${Card} className="p-4 space-y-3">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">In-app messages</div>
+        <div className="space-y-2">
+          ${messages.map(
+            (msg) => html`
+              <div key=${msg.id} className="bg-zinc-900/60 rounded-xl p-3 text-sm">
+                <div className="font-bold text-zinc-300">${msg.from}</div>
+                <div className="text-zinc-400 text-xs mt-1">${msg.text}</div>
+              </div>
+            `
+          )}
+        </div>
+        <div className="flex gap-2">
+          <input
+            value=${draft}
+            onChange=${(event) => setDraft(event.target.value)}
+            className="flex-1 bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm"
+            placeholder="Write a message..."
+          />
+          <button onClick=${sendMessage} className="px-3 py-2 bg-violet-600 rounded-lg text-xs font-bold">Send</button>
+        </div>
+      </${Card}>
+
+      <${Card} className="p-4 space-y-3">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Automated messages</div>
+        ${AUTO_MESSAGES.map(
+          (msg) => html`
+            <div key=${msg.id} className="flex items-center justify-between bg-zinc-900/60 p-3 rounded-xl">
+              <div>
+                <div className="font-bold text-sm">${msg.title}</div>
+                <div className="text-xs text-zinc-500">${msg.when}</div>
+                <div className="text-xs text-zinc-400">${msg.preview}</div>
+              </div>
+              <${Badge} color=${msg.status === 'Active' ? 'green' : 'red'}>${msg.status}</${Badge}>
+            </div>
+          `
+        )}
+      </${Card}>
+    </div>
+  `;
+}
+
+// --- COMMUNITY VIEW ---
+function CommunityView({ setTab }) {
+  const [posts, setPosts] = useState(GROUP_FEED);
+  const [draft, setDraft] = useState('');
+
+  const addPost = () => {
+    if (!draft) return;
+    setPosts((prev) => [{ id: Date.now(), author: 'You', text: draft, time: 'Just now', tags: ['community'] }, ...prev]);
+    setDraft('');
+  };
+
+  return html`
+    <div className="pb-20 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black italic uppercase">Groups</h2>
+        <button onClick=${() => setTab('home')} className="text-xs text-zinc-500 underline">Back</button>
+      </div>
+
+      <${Card} className="p-4 space-y-2">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Your groups</div>
+        <div className="text-xs text-zinc-400">Private community hubs support up to 1000 members with auto-posted milestones.</div>
+        ${GROUPS.map(
+          (group) => html`
+            <div key=${group.id} className="flex items-center justify-between bg-zinc-900/60 rounded-xl p-3">
+              <div>
+                <div className="font-bold text-sm">${group.name}</div>
+                <div className="text-xs text-zinc-500">${group.members} members • ${group.focus}</div>
+              </div>
+              <button className="text-xs font-bold text-white bg-violet-600 px-3 py-1.5 rounded-full">Enter</button>
+            </div>
+          `
+        )}
+      </${Card}>
+
+      <${Card} className="p-4 space-y-3">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Share an update</div>
+        <textarea
+          value=${draft}
+          onChange=${(event) => setDraft(event.target.value)}
+          className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-2 text-sm h-20 resize-none"
+          placeholder="Share a win, photo, or WOD..."
+        ></textarea>
+        <button onClick=${addPost} className="w-full py-2 bg-emerald-500 rounded-lg text-xs font-bold">Post to Group</button>
+      </${Card}>
+
+      <div className="space-y-2">
+        ${posts.map(
+          (post) => html`
+            <${Card} key=${post.id} className="p-3 space-y-1">
+              <div className="flex items-center justify-between text-xs text-zinc-500">
+                <span className="font-bold text-zinc-300">${post.author}</span>
+                <span>${post.time}</span>
+              </div>
+              <div className="text-sm text-zinc-300">${post.text}</div>
+              <div className="flex gap-3 text-xs text-zinc-500">
+                <span>👍 24</span>
+                <span>💬 6</span>
+                <span>#${post.tags[0]}</span>
+              </div>
+            </${Card}>
+          `
+        )}
+      </div>
+    </div>
+  `;
+}
+
+// --- CHALLENGES VIEW ---
+function ChallengesView({ setTab }) {
+  return html`
+    <div className="pb-20 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black italic uppercase">Challenges</h2>
+        <button onClick=${() => setTab('home')} className="text-xs text-zinc-500 underline">Back</button>
+      </div>
+
+      ${CHALLENGE_MODES.map(
+        (challenge) => html`
+          <${Card} key=${challenge.id} className="p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">${challenge.mode}</div>
+                <div className="font-bold text-lg">${challenge.title}</div>
+              </div>
+              <${Badge} color="violet">Live</${Badge}>
+            </div>
+            <p className="text-sm text-zinc-400">${challenge.desc}</p>
+            ${challenge.mode === 'Leaderboard' && html`
+              <div className="grid grid-cols-2 gap-2 text-xs text-zinc-500">
+                <div className="bg-zinc-900/60 rounded-lg p-2">Workout: ${challenge.points.workout} pts</div>
+                <div className="bg-zinc-900/60 rounded-lg p-2">Habit: ${challenge.points.habit} pts</div>
+                <div className="bg-zinc-900/60 rounded-lg p-2">Nutrition: ${challenge.points.nutrition} pts</div>
+                <div className="bg-zinc-900/60 rounded-lg p-2">PR: ${challenge.points.pr} pts</div>
+              </div>
+            `}
+            ${challenge.mode === 'Threshold' && html`
+              <div className="text-xs text-zinc-400">Target: ${challenge.threshold.workouts} workouts + ${challenge.threshold.habits} habits • Reward: ${challenge.threshold.bonus}</div>
+            `}
+          </${Card}>
+        `
+      )}
+    </div>
+  `;
+}
+
+// --- WEARABLES VIEW ---
+function WearablesView({ setTab }) {
+  return html`
+    <div className="pb-20 space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-black italic uppercase">Wearables</h2>
+        <button onClick=${() => setTab('home')} className="text-xs text-zinc-500 underline">Back</button>
+      </div>
+
+      <div className="space-y-3">
+        ${WEARABLES.map(
+          (device) => html`
+            <${Card} key=${device.id} className="p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="font-bold">${device.name}</div>
+                <${Badge} color=${device.status === 'Connected' ? 'green' : 'yellow'}>${device.status}</${Badge}>
+              </div>
+              <div className="text-xs text-zinc-500">Syncing: ${device.metrics.join(', ')}</div>
+              <button className="w-full py-2 bg-zinc-800 rounded-lg text-xs font-bold">
+                ${device.status === 'Connected' ? 'Manage Connection' : 'Connect'}
+              </button>
+            </${Card}>
+          `
+        )}
+      </div>
+
+      <${Card} className="p-4 space-y-2">
+        <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Apple Watch</div>
+        <div className="text-sm text-zinc-400">Track workouts, habits, and daily to-dos from your wrist.</div>
+        <div className="flex gap-2">
+          <button className="flex-1 py-2 bg-violet-600 rounded-lg text-xs font-bold">Start Workout</button>
+          <button className="flex-1 py-2 bg-zinc-800 rounded-lg text-xs font-bold">Check Habits</button>
+        </div>
+      </${Card}>
     </div>
   `;
 }
