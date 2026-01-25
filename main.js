@@ -1858,7 +1858,6 @@ function TobyCoachView() {
   ]);
   const [isListening, setIsListening] = useState(false);
   const [sassMode, setSassMode] = useState(true);
-  const lastReplyRef = useRef('');
 
   const addMsg = (text, from = 'user') => {
     setMessages((prev) => [...prev, { id: Date.now(), from, text }]);
@@ -1941,6 +1940,15 @@ function TobyCoachView() {
             'Understood. Share your goal and time available, and I’ll help.',
             'Got it. Tell me your goal, time available, and I’ll take it from there.'
           ]);
+      let resp = '';
+      if (trimmed.includes('Push')) {
+        resp = "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity.";
+      } else if (trimmed.includes('Recovery')) {
+        resp = "Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?";
+      } else if (trimmed.includes('Surprise')) {
+        resp = "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining.";
+      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying)/.test(lower)) {
+        resp = "Easy there, keyboard warrior. I can be helpful or I can be petty. Choose wisely.";
       } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
         resp = pickReply([
           "You're welcome. I accept payment in PRs and protein.",
@@ -1995,6 +2003,18 @@ function TobyCoachView() {
             'Understood. Choose strength, hypertrophy, or recovery, and I’ll build the plan.',
             'Got it. Choose a target and I’ll take it from there.'
           ]);
+          ? 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher. Your future self says thanks.'
+          : 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher.';
+      } else if (/(help|plan|workout|train|lift|session)/.test(lower)) {
+        resp = sassMode
+          ? "I got you. Tell me your goal, time available, and what equipment you've got. I'll build the plan and roast you lightly."
+          : "Tell me your goal, time available, and what equipment you've got.";
+      } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
+        resp = sassMode
+          ? "Hey. You brought the vibes; I brought the plan. What's the mission today?"
+          : "Hey there. What's the mission today?";
+      } else {
+        resp = `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`;
       }
       addMsg(resp, 'toby');
     }, 1000);
