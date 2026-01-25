@@ -1863,15 +1863,19 @@ function TobyCoachView() {
   };
 
   const handleAction = (action) => {
-    addMsg(action, 'user');
+    const trimmed = action.trim();
+    if (!trimmed) {
+      return;
+    }
+    addMsg(trimmed, 'user');
     setTimeout(() => {
-      const lower = action.toLowerCase();
+      const lower = trimmed.toLowerCase();
       let resp = '';
-      if (action.includes('Push')) {
+      if (trimmed.includes('Push')) {
         resp = "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity.";
-      } else if (action.includes('Recovery')) {
+      } else if (trimmed.includes('Recovery')) {
         resp = "Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?";
-      } else if (action.includes('Surprise')) {
+      } else if (trimmed.includes('Surprise')) {
         resp = "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining.";
       } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying)/.test(lower)) {
         resp = "Easy there, keyboard warrior. I can be helpful or I can be petty. Choose wisely.";
@@ -1884,7 +1888,7 @@ function TobyCoachView() {
       } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
         resp = "Hey. You brought the vibes; I brought the plan. What's the mission today?";
       } else {
-        resp = `Got it: "${action}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`;
+        resp = `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`;
       }
       addMsg(resp, 'toby');
     }, 1000);
