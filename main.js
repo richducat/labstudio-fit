@@ -1857,34 +1857,61 @@ function TobyCoachView() {
     { id: 1, from: 'toby', text: "Toby 2.0 online. I peeked at your recovery data and your CNS is purring. We chasing a PR, or you want to pretend we're sensible today?" }
   ]);
   const [isListening, setIsListening] = useState(false);
+  const [sassMode, setSassMode] = useState(true);
 
   const addMsg = (text, from = 'user') => {
     setMessages((prev) => [...prev, { id: Date.now(), from, text }]);
   };
 
   const handleAction = (action) => {
-    addMsg(action, 'user');
+    const trimmed = action.trim();
+    if (!trimmed) {
+      return;
+    }
+    addMsg(trimmed, 'user');
     setTimeout(() => {
-      const lower = action.toLowerCase();
+      const lower = trimmed.toLowerCase();
       let resp = '';
-      if (action.includes('Push')) {
-        resp = "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity.";
-      } else if (action.includes('Recovery')) {
-        resp = "Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?";
-      } else if (action.includes('Surprise')) {
-        resp = "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining.";
-      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying)/.test(lower)) {
-        resp = "Easy there, keyboard warrior. I can be helpful or I can be petty. Choose wisely.";
+      if (/(smart ?ass|sass|roast me|talk trash|be witty|be a smartass)/.test(lower)) {
+        setSassMode(true);
+        resp = "Smart-ass mode on. I'll roast you and still get you stronger.";
+      } else if (/(tone it down|be nice|no sass|be professional|be serious)/.test(lower)) {
+        setSassMode(false);
+        resp = 'Got it. Coach mode: calm, focused, and zero snark.';
+      } else if (trimmed.includes('Push')) {
+        resp = sassMode
+          ? "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity."
+          : 'Heavy upper-body day it is. Warm up with the Neuro Drill first.';
+      } else if (trimmed.includes('Recovery')) {
+        resp = sassMode
+          ? "Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?"
+          : 'Active recovery queued: 20 min sauna + 10 min ice bath. Want me to lock it in?';
+      } else if (trimmed.includes('Surprise')) {
+        resp = sassMode
+          ? "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining."
+          : "Generating 'The Gauntlet' protocol... 4 rounds, high intensity.";
+      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying|fuck off|eat shit|screw you)/.test(lower)) {
+        resp = sassMode
+          ? 'Noted. If that was the warm-up, you’re ready. Pick strength, hypertrophy, or recovery.'
+          : 'Heard. Tell me your goal and time available, and I’ll build the plan.';
       } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
         resp = "You're welcome. I accept payment in PRs and protein.";
       } else if (/(tired|sore|burned out|exhausted|fatigued)/.test(lower)) {
-        resp = "Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher. Your future self says thanks.";
+        resp = sassMode
+          ? 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher. Your future self says thanks.'
+          : 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher.';
       } else if (/(help|plan|workout|train|lift|session)/.test(lower)) {
-        resp = "I got you. Tell me your goal, time available, and what equipment you've got. I'll build the plan and roast you lightly.";
+        resp = sassMode
+          ? "I got you. Tell me your goal, time available, and what equipment you've got. I'll build the plan and roast you lightly."
+          : "Tell me your goal, time available, and what equipment you've got.";
       } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
-        resp = "Hey. You brought the vibes; I brought the plan. What's the mission today?";
+        resp = sassMode
+          ? "Hey. You brought the vibes; I brought the plan. What's the mission today?"
+          : "Hey there. What's the mission today?";
       } else {
-        resp = `Got it: "${action}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`;
+        resp = sassMode
+          ? `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`
+          : `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen.`;
       }
       addMsg(resp, 'toby');
     }, 1000);

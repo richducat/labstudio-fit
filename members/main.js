@@ -3529,6 +3529,7 @@ function TobyCoachView() {
     { id: 1, from: 'toby', text: 'Toby 2.0 Online. I’ve analyzed your recovery data. Your CNS is primed. Do we push for a PR today?' }
   ]);
   const [isListening, setIsListening] = useState(false);
+  const [sassMode, setSassMode] = useState(true);
 
   useEffect(() => {
     logEvent('chat_opened');
@@ -3539,14 +3540,56 @@ function TobyCoachView() {
   };
 
   const handleAction = (action) => {
-    addMsg(action, 'user');
-    logEvent('chat_message_attempted', { text: action });
+    const trimmed = action.trim();
+    if (!trimmed) {
+      return;
+    }
+    addMsg(trimmed, 'user');
+    logEvent('chat_message_attempted', { text: trimmed });
     setTimeout(() => {
+      const lower = trimmed.toLowerCase();
       let resp = '';
-      if (action.includes('Push')) resp = 'Love that energy. Let’s hit a Heavy Upper Body session. Warm up with the Neuro Drill first.';
-      if (action.includes('Recovery')) resp = 'Smart. Active recovery. 20 min Sauna + 10 min Ice Bath. Book it now?';
-      if (action.includes('Surprise')) resp = "Generating 'The Gauntlet' protocol... 4 Rounds, High Intensity. Prepare yourself.";
-      if (!resp) resp = 'I’m syncing with your coach profile right now. Try a quick prompt like “Push for PR” or “Recovery day.”';
+      if (/(smart ?ass|sass|roast me|talk trash|be witty|be a smartass)/.test(lower)) {
+        setSassMode(true);
+        resp = "Smart-ass mode on. I'll roast you and still get you stronger.";
+      } else if (/(tone it down|be nice|no sass|be professional|be serious)/.test(lower)) {
+        setSassMode(false);
+        resp = 'Got it. Coach mode: calm, focused, and zero snark.';
+      } else if (trimmed.includes('Push')) {
+        resp = sassMode
+          ? 'Love that energy. Heavy upper-body day it is. Warm up with the Neuro Drill first.'
+          : 'Locked. Heavy upper-body session. Warm up with the Neuro Drill first.';
+      } else if (trimmed.includes('Recovery')) {
+        resp = sassMode
+          ? 'Smart. Active recovery. 20 min sauna + 10 min ice bath. Want me to lock it in?'
+          : 'Active recovery queued: 20 min sauna + 10 min ice bath. Want me to book it?';
+      } else if (trimmed.includes('Surprise')) {
+        resp = sassMode
+          ? "Generating 'The Gauntlet' protocol... 4 rounds, high intensity. Prepare yourself."
+          : "Generating 'The Gauntlet' protocol... 4 rounds, high intensity.";
+      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying|fuck off|eat shit|screw you)/.test(lower)) {
+        resp = sassMode
+          ? "Noted. I can take a punch. Now pick your poison: strength, hypertrophy, or recovery?"
+          : 'Heard. If you want help, tell me your goal and time available.';
+      } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
+        resp = 'You’re welcome. I accept payment in PRs and protein.';
+      } else if (/(tired|sore|burned out|exhausted|fatigued)/.test(lower)) {
+        resp = 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher.';
+      } else if (/(no|not now|nah|nope)/.test(lower)) {
+        resp = 'All good. If you want a plan or a booking, just say the word.';
+      } else if (/(help|plan|workout|train|lift|session)/.test(lower)) {
+        resp = sassMode
+          ? 'I got you. Tell me your goal, time available, and what equipment you have.'
+          : 'Tell me your goal, time available, and what equipment you have.';
+      } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
+        resp = sassMode
+          ? "Hey. You brought the vibes; I brought the plan. What's the mission today?"
+          : "Hey there. What's the mission today?";
+      } else {
+        resp = sassMode
+          ? `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I’ll make it happen.`
+          : `Got it: "${trimmed}". Share a target (strength, hypertrophy, recovery) and I’ll build the plan.`;
+      }
       addMsg(resp, 'toby');
     }, 1000);
   };
