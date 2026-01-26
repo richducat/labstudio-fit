@@ -3550,10 +3550,8 @@ function TobyCoachView() {
     setTimeout(() => {
       const lower = trimmed.toLowerCase();
       const pickReply = (options) => {
-        if (!options.length) return '';
         const pool = options.filter((option) => option !== lastReplyRef.current);
-        const list = pool.length ? pool : options;
-        const choice = list[Math.floor(Math.random() * list.length)];
+        const choice = (pool.length ? pool : options)[Math.floor(Math.random() * options.length)];
         lastReplyRef.current = choice;
         return choice;
       };
@@ -3680,6 +3678,27 @@ function TobyCoachView() {
             'Understood. Pick strength, hypertrophy, or recovery, and I’ll build the plan.',
             'Got it. Choose a target and I’ll take it from there.'
           ]);
+      let resp = '';
+      if (trimmed.includes('Push')) {
+        resp = 'Love that energy. Heavy upper-body day it is. Warm up with the Neuro Drill first.';
+      } else if (trimmed.includes('Recovery')) {
+        resp = 'Smart. Active recovery. 20 min sauna + 10 min ice bath. Want me to lock it in?';
+      } else if (trimmed.includes('Surprise')) {
+        resp = "Generating 'The Gauntlet' protocol... 4 rounds, high intensity. Prepare yourself.";
+      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying)/.test(lower)) {
+        resp = "Easy there. I can be helpful or I can be petty. Choose wisely.";
+      } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
+        resp = 'You’re welcome. I accept payment in PRs and protein.';
+      } else if (/(tired|sore|burned out|exhausted|fatigued)/.test(lower)) {
+        resp = 'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher.';
+      } else if (/(no|not now|nah|nope)/.test(lower)) {
+        resp = 'All good. If you want a plan or a booking, just say the word.';
+      } else if (/(help|plan|workout|train|lift|session)/.test(lower)) {
+        resp = 'I got you. Tell me your goal, time available, and what equipment you have.';
+      } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
+        resp = "Hey. You brought the vibes; I brought the plan. What's the mission today?";
+      } else {
+        resp = `Got it: "${trimmed}". Give me a target (strength, hypertrophy, recovery) and I’ll make it happen.`;
       }
       addMsg(resp, 'toby');
     }, 1000);
