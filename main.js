@@ -1857,34 +1857,146 @@ function TobyCoachView() {
     { id: 1, from: 'toby', text: "Toby 2.0 online. I peeked at your recovery data and your CNS is purring. We chasing a PR, or you want to pretend we're sensible today?" }
   ]);
   const [isListening, setIsListening] = useState(false);
+  const [sassMode, setSassMode] = useState(true);
+  const lastReplyRef = useRef('');
 
   const addMsg = (text, from = 'user') => {
     setMessages((prev) => [...prev, { id: Date.now(), from, text }]);
   };
 
   const handleAction = (action) => {
-    addMsg(action, 'user');
+    const trimmed = action.trim();
+    if (!trimmed) {
+      return;
+    }
+    addMsg(trimmed, 'user');
     setTimeout(() => {
-      const lower = action.toLowerCase();
+      const lower = trimmed.toLowerCase();
+      const pickReply = (options) => {
+        if (!options.length) return '';
+        const pool = options.filter((option) => option !== lastReplyRef.current);
+        const list = pool.length ? pool : options;
+        const choice = list[Math.floor(Math.random() * list.length)];
+        lastReplyRef.current = choice;
+        return choice;
+      };
       let resp = '';
-      if (action.includes('Push')) {
-        resp = "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity.";
-      } else if (action.includes('Recovery')) {
-        resp = "Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?";
-      } else if (action.includes('Surprise')) {
-        resp = "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining.";
-      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying)/.test(lower)) {
-        resp = "Easy there, keyboard warrior. I can be helpful or I can be petty. Choose wisely.";
+      if (/(smart ?ass|sass|roast me|talk trash|be witty|be a smartass)/.test(lower)) {
+        setSassMode(true);
+        resp = pickReply([
+          "Smart-ass mode on. I'll roast you and still get you stronger.",
+          "Sass mode engaged. I'll keep it spicy and keep you training.",
+          "You want sass? Buckle up. We're still getting the work done."
+        ]);
+      } else if (/(tone it down|be nice|no sass|be professional|be serious)/.test(lower)) {
+        setSassMode(false);
+        resp = pickReply([
+          'Got it. Coach mode: calm, focused, and zero snark.',
+          'Understood. Straight coach mode activated.',
+          'Dialing it back. Clear, direct coaching from here.'
+        ]);
+      } else if (trimmed.includes('Push')) {
+        resp = sassMode
+          ? pickReply([
+            "Bold. Heavy upper-body day it is. Warm up with the Neuro Drill first, then let's go rearrange gravity.",
+            'PR mode. Big lifts, clean form. Start with the Neuro Drill.',
+            'Let’s go heavy. Neuro Drill first, then we load the bar.'
+          ])
+          : pickReply([
+            'Heavy upper-body day it is. Warm up with the Neuro Drill first.',
+            'Heavy upper-body session queued. Start with the Neuro Drill.',
+            'Heavy day confirmed. Begin with the Neuro Drill warm-up.'
+          ]);
+      } else if (trimmed.includes('Recovery')) {
+        resp = sassMode
+          ? pickReply([
+            'Ah yes, the art of doing nothing aggressively. 20 min sauna + 10 min ice bath. Want me to lock it in?',
+            'Recovery is still training. 20 min sauna + 10 min ice bath. Book it?',
+            'Chill day, but on purpose. 20 min sauna + 10 min ice bath. Want it locked?'
+          ])
+          : pickReply([
+            'Active recovery queued: 20 min sauna + 10 min ice bath. Want me to lock it in?',
+            'Recovery session ready: 20 min sauna + 10 min ice bath. Want me to book it?',
+            'Active recovery set: 20 min sauna + 10 min ice bath. Want it scheduled?'
+          ]);
+      } else if (trimmed.includes('Surprise')) {
+        resp = sassMode
+          ? pickReply([
+            "You're asking a chaos goblin for structure. Fine. 'The Gauntlet' is live: 4 rounds, high intensity, no whining.",
+            "Surprise mode: The Gauntlet is live. 4 rounds, high intensity. No whining.",
+            "You asked for chaos. The Gauntlet drops in 3...2...1."
+          ])
+          : pickReply([
+            "Generating 'The Gauntlet' protocol... 4 rounds, high intensity.",
+            "Surprise session queued: The Gauntlet. 4 rounds, high intensity.",
+            "Surprise session queued. The Gauntlet is ready."
+          ]);
+      } else if (/(trash|stupid|idiot|dumb|shut up|hate|annoying|fuck off|eat shit|screw you|fuck you|bitch|slut)/.test(lower)) {
+        resp = sassMode
+          ? pickReply([
+            'Noted. If that was the warm-up, you’re ready. Pick strength, hypertrophy, or recovery.',
+            'Spicy. Now channel that into a workout. Strength, hypertrophy, or recovery?',
+            'You good? Cool. Choose your focus and we’ll move forward.'
+          ])
+          : pickReply([
+            'Heard. Tell me your goal and time available, and I’ll build the plan.',
+            'Understood. Share your goal and time available, and I’ll help.',
+            'Got it. Tell me your goal, time available, and I’ll take it from there.'
+          ]);
       } else if (/(thanks|thank you|thx|appreciate)/.test(lower)) {
-        resp = "You're welcome. I accept payment in PRs and protein.";
+        resp = pickReply([
+          "You're welcome. I accept payment in PRs and protein.",
+          'Anytime. Bring effort and we’re good.',
+          'You got it. Now let’s get after it.'
+        ]);
       } else if (/(tired|sore|burned out|exhausted|fatigued)/.test(lower)) {
-        resp = "Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher. Your future self says thanks.";
+        resp = sassMode
+          ? pickReply([
+            'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher. Your future self says thanks.',
+            'Got it. We’ll go smart today: lighter load, clean tempo, recovery finisher.',
+            'We’ll keep it smart: lighter load, clean tempo, recovery finisher.'
+          ])
+          : pickReply([
+            'Copy that. We go smart today: lighter load, clean tempo, and a recovery finisher.',
+            'Understood. Lighter load, clean tempo, recovery finisher.',
+            'We’ll scale it down: lighter load, clean tempo, recovery finisher.'
+          ]);
       } else if (/(help|plan|workout|train|lift|session)/.test(lower)) {
-        resp = "I got you. Tell me your goal, time available, and what equipment you've got. I'll build the plan and roast you lightly.";
+        resp = sassMode
+          ? pickReply([
+            "I got you. Tell me your goal, time available, and what equipment you've got. I'll build the plan and roast you lightly.",
+            'Give me your goal, time available, and equipment. I’ll handle the rest.',
+            'Tell me goal, time, equipment. I’ll build it.'
+          ])
+          : pickReply([
+            "Tell me your goal, time available, and what equipment you've got.",
+            'Share your goal, time available, and equipment.',
+            "Tell me your goal, time available, and equipment, and I’ll build the plan."
+          ]);
       } else if (/(hi|hello|yo|hey|sup)/.test(lower)) {
-        resp = "Hey. You brought the vibes; I brought the plan. What's the mission today?";
+        resp = sassMode
+          ? pickReply([
+            "Hey. You brought the vibes; I brought the plan. What's the mission today?",
+            'Yo. What are we chasing today?',
+            'Hey. Let’s make something happen. What’s the goal?'
+          ])
+          : pickReply([
+            "Hey there. What's the mission today?",
+            'Hello. What’s your training goal today?',
+            'Hi. What can I help you train today?'
+          ]);
       } else {
-        resp = `Got it: "${action}". Give me a target (strength, hypertrophy, recovery) and I'll make it happen — with just enough sarcasm to keep you humble.`;
+        resp = sassMode
+          ? pickReply([
+            'Got it. Pick a target (strength, hypertrophy, recovery) and I’ll make it happen — with just enough sarcasm to keep you humble.',
+            'Understood. Give me a target (strength, hypertrophy, recovery) and we’ll go.',
+            'Roger that. Choose strength, hypertrophy, or recovery.'
+          ])
+          : pickReply([
+            'Got it. Pick a target (strength, hypertrophy, recovery) and I’ll make it happen.',
+            'Understood. Choose strength, hypertrophy, or recovery, and I’ll build the plan.',
+            'Got it. Choose a target and I’ll take it from there.'
+          ]);
       }
       addMsg(resp, 'toby');
     }, 1000);
