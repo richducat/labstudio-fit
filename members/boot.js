@@ -15,7 +15,7 @@ const renderFallback = (message) => {
 
 const moduleScript = document.createElement('script');
 moduleScript.type = 'module';
-moduleScript.src = '/members/main.js';
+moduleScript.src = new URL('./main.js', window.location.href).toString();
 moduleScript.onerror = () => {
   renderFallback('Unable to load the members experience. Please refresh and try again.');
 };
