@@ -13,22 +13,47 @@ const renderFallback = (message) => {
   `;
 };
 
-const moduleScript = document.createElement('script');
-moduleScript.type = 'module';
 const bootScript = document.currentScript;
 const baseUrl = bootScript?.src ? new URL('.', bootScript.src) : new URL('./', window.location.href);
+let legacyLoading = false;
+
+const markLoaded = () => {
+  document.documentElement.dataset.membersLoaded = 'true';
+  window.dispatchEvent(new Event('members-app-loaded'));
+};
+
+const loadLegacyBundle = (reason) => {
+  if (legacyLoading) return;
+  legacyLoading = true;
+  const legacyScript = document.createElement('script');
+  legacyScript.src = new URL('../main.bundle.js', baseUrl).toString();
+  legacyScript.defer = true;
+  legacyScript.onload = () => {
+    markLoaded();
+    if (reason) {
+      console.warn(reason);
+    }
+  };
+  legacyScript.onerror = () => {
+    renderFallback('Unable to load the members experience. Please refresh and try again.');
+  };
+  document.head.appendChild(legacyScript);
+};
+
+const moduleScript = document.createElement('script');
+moduleScript.type = 'module';
 moduleScript.src = new URL('main.js', baseUrl).toString();
 moduleScript.onerror = () => {
-  renderFallback('Unable to load the members experience. Please refresh and try again.');
+  loadLegacyBundle('Module load failed; falling back to legacy bundle.');
 };
 
 document.head.appendChild(moduleScript);
 
 const fallbackTimer = window.setTimeout(() => {
   if (document.documentElement.dataset.membersLoaded !== 'true') {
-    renderFallback('Still loading the members experience. Please refresh or try another browser.');
+    loadLegacyBundle('Members app still loading; switching to legacy bundle.');
   }
-}, 3500);
+}, 8000);
 
 window.addEventListener('members-app-loaded', () => {
   window.clearTimeout(fallbackTimer);
