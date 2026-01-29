@@ -26,7 +26,7 @@ const loadLegacyBundle = (reason) => {
   if (legacyLoading) return;
   legacyLoading = true;
   const legacyScript = document.createElement('script');
-  legacyScript.src = new URL('../main.bundle.js', baseUrl).toString();
+  legacyScript.src = new URL('main.bundle.js', baseUrl).toString();
   legacyScript.defer = true;
   legacyScript.onload = () => {
     markLoaded();
