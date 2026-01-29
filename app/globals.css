@@ -1,0 +1,29 @@
+:root {
+  color-scheme: dark;
+}
+
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.hero-overlay {
+  background: linear-gradient(
+    to right,
+    rgba(2, 6, 23, 0.9) 0%,
+    rgba(2, 6, 23, 0.7) 50%,
+    rgba(2, 6, 23, 0.4) 100%
+  );
+}
+
+.clip-slant {
+  clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+}
+
+#mobile-menu {
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(100%);
+}
+
+#mobile-menu.open {
+  transform: translateX(0);
+}
