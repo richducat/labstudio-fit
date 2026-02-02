@@ -241,36 +241,6 @@ const TOBY_INTERNAL_LLM = {
   ],
   privacyWarning:
     'Collecting pain, injuries, and health goals is sensitive health-related data. Review HHS resources and state consumer health data laws; even if HIPAA does not apply, privacy obligations may.',
-  fitTrackProIntakeBrain: {
-    purpose:
-      'Capture the core FitTrack Pro intake logic for Toby AI without shipping a separate app UI.',
-    intakeSignals: [
-      'goal',
-      'activity_level',
-      'injuries',
-      'schedule',
-      'nutrition',
-      'firstName',
-      'lastName',
-      'email',
-      'phone'
-    ],
-    intakeStages: ['landing', 'intake', 'report', 'payment', 'dashboard'],
-    coachingGuidance: [
-      'Use goal + activity level to set baseline intensity and split selection.',
-      'Route injury responses through safety triage and corrective exercise planning.',
-      'Leverage schedule answers to prioritize consistency and realistic frequency.',
-      'Use nutrition rating to set macro guidance and follow-up prompts.'
-    ],
-    conversionFlow: [
-      'Multi-step assessment with guided insights.',
-      'Reveal report summary with plan highlights.',
-      'Offer subscription gate to activate plan.',
-      'Unlock dashboard experience for ongoing coaching.'
-    ],
-    safetyNote:
-      'If users disclose pain or red-flag symptoms, trigger triage and recommend human review before vigorous training.'
-  },
   llmExtractionPromptTemplate: `# LLM Extraction Prompt (Template)
 
 Use this prompt for an LLM step that converts **messy, layman, unstructured** text into a structured JSON profile.
